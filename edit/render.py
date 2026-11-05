@@ -138,6 +138,43 @@ for c in CARDS:
         c["chip_imgs"] = [chip_img(t, x1 - x0, y1 - y0) for x0, y0, x1, y1, t in c["chips_xy"]]
 ARROW = arrow_img()
 
+# Background doodles (like the floating maths symbols in the reference):
+# ABC, Jawi letters and numbers, faint and slowly floating in the top area.
+F_DOODLE_LAT = FONT_DIR + "InterDisplay-Black.otf"
+F_DOODLE_JAWI = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+DOODLES = [  # (x, y, size, glyph, jawi?, yellow?, base_rot)
+    (130, 120, 84, "A", False, False, -12), (330, 70, 76, "\u0628", True, True, 8),
+    (560, 110, 64, "1", False, False, 10), (760, 75, 70, "+", False, True, 0),
+    (950, 140, 88, "C", False, False, 14), (60, 330, 78, "\u0627", True, False, 0),
+    (1025, 310, 72, "2", False, True, -10), (60, 520, 66, "a", False, True, 12),
+    (1020, 500, 80, "\u062A", True, False, -8), (250, 600, 60, "B", False, False, -6),
+    (850, 620, 62, "3", False, False, 10), (1000, 690, 56, "=", False, True, 0),
+    (90, 730, 64, "\u062C", True, True, 6),
+]
+DOODLE_ALPHA = 0.32
+
+def doodle_img(size, glyph, jawi, yellow):
+    f = ImageFont.truetype(F_DOODLE_JAWI, int(size * 1.5)) if jawi else ImageFont.truetype(F_DOODLE_LAT, size)
+    pad = size
+    im = Image.new("RGBA", (pad * 2, pad * 2), (0, 0, 0, 0))
+    col = YELLOW if yellow else WHITE
+    ImageDraw.Draw(im).text((pad, pad), glyph, font=f, fill=col[:3] + (int(255 * DOODLE_ALPHA),), anchor="mm")
+    return im
+
+DOODLE_IMGS = [doodle_img(sz, g, j, y) for _, _, sz, g, j, y, _ in DOODLES]
+
+def draw_doodles(frame, t):
+    fade = clamp(t / 0.6)
+    for i, ((x, y, sz, g, j, yl, rot), im) in enumerate(zip(DOODLES, DOODLE_IMGS)):
+        per = 3.2 + 0.37 * i
+        dy = 12 * math.sin(2 * math.pi * t / per + i)
+        dx = 5 * math.cos(2 * math.pi * t / (per * 1.3) + i * 0.7)
+        r = rot + 5 * math.sin(2 * math.pi * t / (per * 1.6) + i)
+        a = im.rotate(r, resample=Image.BICUBIC)
+        if fade < 1:
+            a = scaled(a, 1.0, fade)
+        frame.alpha_composite(a, (int(x + dx - a.width / 2), int(y + dy - a.height / 2)))
+
 
 def scaled(im, s, alpha):
     if s != 1.0:
@@ -149,6 +186,7 @@ def scaled(im, s, alpha):
 
 
 def draw_overlays(frame, t):
+    draw_doodles(frame, t)
     for c in CARDS:
         if not (c["t0"] <= t < c["t1"] + 0.2):
             continue
