@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ms" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      body { font-family: "Inter", sans-serif; }
+
+      .seg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+      /* ---------- text system: white + yellow, bold, medium size ---------- */
+      .txt { position: absolute; left: 0; right: 0; display: flex; flex-direction: column;
+             align-items: center; text-align: center; pointer-events: none; z-index: 10; }
+      .line { font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1.08;
+              text-shadow: 0 3px 14px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.6); }
+      .y { color: #FFD60A; }
+      .sm { font-size: 44px; font-weight: 800; }
+      .md { font-size: 64px; }
+      .lg { font-size: 78px; }
+      .pill { display: inline-block; background: #FFD60A; color: #111; font-weight: 900;
+              border-radius: 18px; padding: 12px 28px; font-size: 52px; text-shadow: none;
+              box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+      .strike { position: relative; display: inline-block; }
+      .strike i { position: absolute; left: -6px; right: -6px; top: 52%; height: 9px;
+                  background: #FFD60A; border-radius: 6px; transform-origin: left center;
+                  box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+      .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; width: 900px; margin-top: 18px; }
+      .chip { background: rgba(255,255,255,.95); color: #111; font-weight: 800; font-size: 42px;
+              border-radius: 999px; padding: 10px 26px; box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+      .chip b { color: #E0A800; font-weight: 900; }
+      .flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 20; }
+      .cta { display: flex; align-items: center; gap: 18px; background: #FFD60A; color: #111;
+             border-radius: 26px; padding: 18px 34px; font-weight: 900; font-size: 54px;
+             box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+      .basket { width: 64px; height: 64px; }
+      .arrow { font-size: 70px; color: #FFD60A; font-weight: 900; margin-top: 6px;
+               text-shadow: 0 3px 12px rgba(0,0,0,.6); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="27.4"
+         data-width="1080" data-height="1920">
+
+      <!-- ================= A-ROLL: 9 segments (cut repetition + dead air) ================= -->
+      <video id="v1" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="0" data-duration="2.9" data-media-start="0" data-track-index="0" data-audio-group="vo"></video>
+      <video id="v2" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="2.9" data-duration="2.6" data-media-start="2.9" data-track-index="0" data-audio-group="vo"></video>
+      <video id="v3" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="5.5" data-duration="3.333" data-media-start="5.5" data-track-index="0" data-audio-group="vo"></video>
+      <video id="v4" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="8.833" data-duration="3.9" data-media-start="8.833" data-track-index="0" data-audio-group="vo" data-fade-out="0.03"></video>
+      <!-- removed src 12.733–14.167 "Boleh buat persediaan awal" (repeated later) -->
+      <video id="v5" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="12.733" data-duration="2.9" data-media-start="14.167" data-track-index="0" data-audio-group="vo" data-fade-in="0.03"></video>
+      <!-- removed src 17.067–17.300 dead air -->
+      <video id="v6" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="15.633" data-duration="0.7" data-media-start="17.3" data-track-index="0" data-audio-group="vo"></video>
+      <video id="v7" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="16.333" data-duration="2.367" data-media-start="18.0" data-track-index="0" data-audio-group="vo"></video>
+      <video id="v8" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="18.7" data-duration="4.166" data-media-start="20.367" data-track-index="0" data-audio-group="vo"></video>
+      <video id="v9" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+        data-start="22.866" data-duration="4.534" data-media-start="24.533" data-track-index="0" data-audio-group="vo" data-fade-out="0.25"></video>
+
+      <hf-audio-group id="vo"
+        data-fx-chain="{&quot;version&quot;:1,&quot;nodes&quot;:[{&quot;type&quot;:&quot;highpass&quot;,&quot;id&quot;:&quot;hp&quot;,&quot;label&quot;:&quot;Remove rumble&quot;,&quot;params&quot;:{&quot;frequency&quot;:85}},{&quot;type&quot;:&quot;peaking&quot;,&quot;id&quot;:&quot;pk&quot;,&quot;label&quot;:&quot;Clarity&quot;,&quot;params&quot;:{&quot;frequency&quot;:3000,&quot;gain&quot;:2,&quot;q&quot;:1}},{&quot;type&quot;:&quot;limiter&quot;,&quot;id&quot;:&quot;lim&quot;,&quot;params&quot;:{&quot;limit&quot;:-1}}]}"></hf-audio-group>
+
+      <!-- ================= MUSIC (ducked under voice) ================= -->
+      <audio id="music" src="assets/music.wav" data-start="0" data-duration="27.4" data-track-index="5"
+        data-fade-out="0.8"
+        data-automation="{&quot;version&quot;:1,&quot;lanes&quot;:[{&quot;target&quot;:&quot;volume&quot;,&quot;points&quot;:[{&quot;t&quot;:0,&quot;v&quot;:0.13},{&quot;t&quot;:27.1,&quot;v&quot;:0.13},{&quot;t&quot;:27.25,&quot;v&quot;:0.35}]}]}"></audio>
+
+      <!-- ================= SFX (low, under voice) ================= -->
+      <audio id="sx-pop1"  src="assets/boop.wav"     data-start="0.05"  data-duration="0.16" data-volume="0.35" data-track-index="6"></audio>
+      <audio id="sx-strk"  src="assets/swipe.wav"  data-start="1.65"  data-duration="0.32" data-volume="0.22" data-track-index="6"></audio>
+      <audio id="sx-wh1"   src="assets/swipe.wav"  data-start="5.40"   data-duration="0.32" data-volume="0.28" data-track-index="7"></audio>
+      <audio id="sx-ding"  src="assets/xylo.wav"    data-start="6.85"   data-duration="0.9"  data-volume="0.22" data-track-index="6"></audio>
+      <audio id="sx-pop2"  src="assets/boop.wav"     data-start="11.9"  data-duration="0.16" data-volume="0.35" data-track-index="6"></audio>
+      <audio id="sx-wh2"   src="assets/swipe.wav"  data-start="12.63" data-duration="0.32" data-volume="0.28" data-track-index="7"></audio>
+      <audio id="sx-t1"    src="assets/ting.wav"    data-start="13.89" data-duration="0.5" data-volume="0.4"  data-track-index="6"></audio>
+      <audio id="sx-t2"    src="assets/ting.wav"    data-start="14.41" data-duration="0.5" data-volume="0.4"  data-track-index="6"></audio>
+      <audio id="sx-t3"    src="assets/ting.wav"    data-start="15.01" data-duration="0.5" data-volume="0.4"  data-track-index="6"></audio>
+      <audio id="sx-t4"    src="assets/ting.wav"    data-start="15.67" data-duration="0.5" data-volume="0.4"  data-track-index="6"></audio>
+      <audio id="sx-wh3"   src="assets/swipe.wav"  data-start="18.60"  data-duration="0.32" data-volume="0.28" data-track-index="7"></audio>
+      <audio id="sx-wh4"   src="assets/swipe.wav"  data-start="22.76" data-duration="0.32" data-volume="0.28" data-track-index="7"></audio>
+      <audio id="sx-spk"   src="assets/chime.wav" data-start="25.1"  data-duration="1.3"  data-volume="0.3"  data-track-index="6"></audio>
+
+      <!-- ================= TEXT / MOTION GRAPHICS (top band, clear of face & product) ================= -->
+      <!-- HOOK -->
+      <div id="t-hook" class="clip txt" data-start="0" data-duration="2.9" data-track-index="2" style="top: 350px; padding-left: 300px;">
+        <div id="hk1" class="line md">Persediaan <span class="y">Tahun 1</span></div>
+        <div id="hk2" class="line sm" style="margin-top:14px">bukan sekadar</div>
+        <div id="hk3" class="line md" style="margin-top:6px"><span class="strike">beg &amp; kasut<i id="hk-strike"></i></span></div>
+      </div>
+
+      <div id="t-kenal" class="clip txt" data-start="3.4" data-duration="2.05" data-track-index="2" style="top: 370px; padding-left: 300px;">
+        <div class="line sm">Mula kenalkan</div>
+        <div class="line md y">dekat anak ✨</div>
+      </div>
+
+      <div id="t-modul" class="clip txt" data-start="6.85" data-duration="1.95" data-track-index="2" style="top: 350px; padding-left: 300px;">
+        <div class="line sm">melalui</div>
+        <div id="modul" class="line md y" style="margin-top:8px">Modul Transisi Tahun 1</div>
+      </div>
+
+      <div id="t-wish" class="clip txt" data-start="9.3" data-duration="3.4" data-track-index="2" style="top: 350px;">
+        <div class="line sm">Ibu ayah, masukkan dalam</div>
+        <div id="wish" class="line lg y" style="margin-top:8px">wishlist 🛒</div>
+      </div>
+
+      <div id="t-4m" class="clip txt" data-start="12.85" data-duration="3.45" data-track-index="2" style="top: 330px;">
+        <div class="line md">Latihan <span class="y">4M</span></div>
+        <div class="chips">
+          <div id="c1" class="chip"><b>M</b>embaca</div>
+          <div id="c2" class="chip"><b>M</b>engira</div>
+          <div id="c3" class="chip"><b>M</b>enaakul</div>
+          <div id="c4" class="chip"><b>M</b>enulis</div>
+        </div>
+      </div>
+
+      <div id="t-fam" class="clip txt" data-start="16.45" data-duration="2.2" data-track-index="2" style="top: 370px;">
+        <div class="line sm">Anak lebih <span class="y">familiar</span></div>
+        <div class="line sm">dengan aktiviti belajar</div>
+      </div>
+
+      <div id="t-satu" class="clip txt" data-start="19.4" data-duration="3.4" data-track-index="2" style="top: 350px;">
+        <div class="line md"><span class="y">1 buku</span>,</div>
+        <div class="line md">pelbagai latihan 🏠</div>
+      </div>
+
+      <div id="t-awal" class="clip txt" data-start="23.0" data-duration="2.05" data-track-index="2" style="top: 350px; padding-right: 260px;">
+        <div class="line sm">Buat persediaan</div>
+        <div class="line md y">awal Tahun 1</div>
+      </div>
+
+      <div id="t-cta" class="clip txt" data-start="25.1" data-duration="2.3" data-track-index="2" style="top: 330px; padding-right: 240px;">
+        <div class="line sm" style="margin-bottom:6px">Dapatkan di</div>
+        <div id="cta" class="line lg y">beg kuning saya 🛒</div>
+      </div>
+
+      <!-- transition flashes -->
+      <div id="fl1" class="clip flash" data-start="5.45"  data-duration="0.25" data-track-index="3"></div>
+      <div id="fl2" class="clip flash" data-start="12.68" data-duration="0.25" data-track-index="3"></div>
+      <div id="fl3" class="clip flash" data-start="18.65" data-duration="0.25" data-track-index="3"></div>
+      <div id="fl4" class="clip flash" data-start="22.81" data-duration="0.25" data-track-index="3"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const E = "power3.out";
+
+      // ---- footage motion: hook punch-out, slow push-ins, zoom-in transitions, jump-cut mask
+      tl.fromTo("#v1", { scale: 1.18 }, { scale: 1.04, duration: 0.6, ease: "expo.out" }, 0);
+      tl.to("#v1", { scale: 1.0, duration: 2.3, ease: "none" }, 0.6);
+      tl.fromTo("#v2", { scale: 1.0 }, { scale: 1.05, duration: 2.6, ease: "none" }, 2.9);
+      tl.fromTo("#v3", { scale: 1.12 }, { scale: 1.02, duration: 0.5, ease: E }, 5.5);
+      tl.to("#v3", { scale: 1.06, duration: 2.83, ease: "none" }, 6.0);
+      tl.fromTo("#v4", { scale: 1.0 }, { scale: 1.06, duration: 3.9, ease: "none" }, 8.833);
+      tl.fromTo("#v5", { scale: 1.12 }, { scale: 1.02, duration: 0.5, ease: E }, 12.733);
+      tl.to("#v5", { scale: 1.05, duration: 2.4, ease: "none" }, 13.233);
+      tl.fromTo("#v6", { scale: 1.12 }, { scale: 1.14, duration: 0.7, ease: "none" }, 15.633);
+      tl.fromTo("#v7", { scale: 1.0 }, { scale: 1.05, duration: 2.367, ease: "none" }, 16.333);
+      tl.fromTo("#v8", { scale: 1.12 }, { scale: 1.02, duration: 0.5, ease: E }, 18.7);
+      tl.to("#v8", { scale: 1.06, duration: 3.66, ease: "none" }, 19.2);
+      tl.fromTo("#v9", { scale: 1.12 }, { scale: 1.02, duration: 0.5, ease: E }, 22.866);
+      tl.to("#v9", { scale: 1.07, duration: 4.0, ease: "none" }, 23.366);
+
+      // ---- flashes
+      ["#fl1","#fl2","#fl3","#fl4"].forEach((id, i) => {
+        const at = [5.45, 12.68, 18.65, 22.81][i];
+        tl.fromTo(id, { opacity: 0 }, { opacity: 0.45, duration: 0.07, ease: "none" }, at);
+        tl.to(id, { opacity: 0, duration: 0.18, ease: "power2.in" }, at + 0.07);
+      });
+
+      // ---- hook text
+      tl.fromTo("#hk1", { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(2)" }, 0.05);
+      tl.fromTo("#hk2", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, ease: E }, 1.1);
+      tl.fromTo("#hk3", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, ease: E }, 1.3);
+      tl.fromTo("#hk-strike", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power2.inOut" }, 1.7);
+      tl.to("#t-hook", { opacity: 0, y: -20, duration: 0.2, ease: "power2.in" }, 2.7);
+
+      // ---- generic in/out helper
+      function pop(id, start, dur) {
+        tl.fromTo(id, { opacity: 0, y: 26, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.32, ease: "back.out(1.8)" }, start);
+        tl.to(id, { opacity: 0, y: -16, duration: 0.2, ease: "power2.in" }, start + dur - 0.2);
+      }
+      pop("#t-kenal", 3.4, 2.05);
+      pop("#t-modul", 6.85, 1.95);
+      pop("#t-wish", 9.3, 3.4);
+      tl.fromTo("#wish", { scale: 1 }, { scale: 1.12, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, 11.9);
+      pop("#t-4m", 12.85, 3.45);
+      [["#c1",13.89],["#c2",14.41],["#c3",15.01],["#c4",15.67]].forEach(([id, at]) => {
+        tl.fromTo(id, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2.5)" }, at);
+      });
+      pop("#t-fam", 16.45, 2.2);
+      pop("#t-satu", 19.4, 3.4);
+      pop("#t-awal", 23.0, 2.05);
+
+      // ---- CTA
+      tl.fromTo("#t-cta", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: E }, 25.1);
+      tl.fromTo("#cta", { scale: 0.8 }, { scale: 1, duration: 0.4, ease: "back.out(2.2)" }, 25.15);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
