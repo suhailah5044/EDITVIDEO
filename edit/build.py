@@ -14,9 +14,10 @@ SRC_SCALE = 1.15                     # footage decoded slightly larger so we can
 SW, SH = int(W * SRC_SCALE) // 2 * 2, int(H * SRC_SCALE) // 2 * 2
 
 FONT_DIR = "/usr/share/fonts/opentype/inter/"
-F_BOLD = FONT_DIR + "InterDisplay-ExtraBold.otf"
-F_MATH = FONT_DIR + "InterDisplay-BoldItalic.otf"
-F_NUM = FONT_DIR + "InterDisplay-Bold.otf"
+_HERE = os.path.dirname(os.path.abspath(__file__))
+F_BOLD = os.path.join(_HERE, "fonts", "Montserrat-BlackItalic.ttf")   # bold italic title style (as in the reference)
+F_MATH = F_BOLD
+F_NUM = F_BOLD
 WHITE = (255, 255, 255)
 YELLOW = (255, 212, 0)
 
@@ -69,8 +70,8 @@ GROUPS = [
     (14.12, 14.98, 1000, [[T(14.12, "Nampak "), T(14.44, "susah", YELLOW), T(14.80, " kan?")]]),
     (15.40, 17.12, 250, [[T(15.40, "Pecahan Algebra", YELLOW)]]),
     (17.22, 19.62, 300, [[T(17.22, "Selalu "), T(17.40, "stuck?", YELLOW)]]),
-    (23.12, 26.30, 300, [[T(23.12, "Nota ringkas", WHITE, 54), T(23.58, "  \u2022  Contoh", WHITE, 54),
-                          T(24.24, "  \u2022  Latihan", YELLOW, 54)]]),
+    (23.12, 26.30, 300, [[T(23.12, "Nota ringkas", WHITE, 46), T(23.58, "  \u2022  Contoh", WHITE, 46),
+                          T(24.24, "  \u2022  Latihan", YELLOW, 46)]]),
     (27.12, 28.78, 950, [[T(27.12, "Scan QR", YELLOW)], [T(28.14, "Video tutorial", WHITE, 54)]]),
     (29.82, 30.88, 800, [[T(29.82, "Boleh ulang tengok", WHITE, 54)]]),
     (31.16, 32.90, 300, [[T(31.16, "Sesuai untuk", WHITE, 54)], [T(31.52, "Form 1 \u2013 Form 5", YELLOW)]]),
@@ -89,11 +90,11 @@ def font(path, size):
 def render_text(s, color, size):
     f = font(F_BOLD, size)
     bb = f.getbbox(s)
-    pad = 24
+    pad = 24 + size // 6
     w, h = bb[2] - bb[0] + 2 * pad, int(size * 1.35) + 2 * pad
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.text((pad - bb[0], pad), s, font=f, fill=color + (255,), stroke_width=max(3, size // 17), stroke_fill=(15, 15, 15, 255))
+    d.text((pad - bb[0], pad), s, font=f, fill=color + (255,), stroke_width=max(4, size // 9), stroke_fill=(12, 12, 12, 255))
     return img
 
 def math_text(d, x, y, s, f, color):
@@ -101,7 +102,7 @@ def math_text(d, x, y, s, f, color):
     cx = x
     for ch in s:
         ff = f[1] if ch.isalpha() else f[0]
-        d.text((cx, y), ch, font=ff, fill=color + (255,), stroke_width=max(3, f[0].size // 17), stroke_fill=(15, 15, 15, 255))
+        d.text((cx, y), ch, font=ff, fill=color + (255,), stroke_width=max(4, f[0].size // 9), stroke_fill=(12, 12, 12, 255))
         cx += ff.getlength(ch)
     return cx - x
 
@@ -209,7 +210,7 @@ def top_shade():
     return (1 - a)[..., None].astype(np.float32)
 SHADE = top_shade()
 
-GRADE = "eq=brightness=0.015:contrast=1.07:saturation=1.10:gamma=1.02,unsharp=5:5:0.45"
+GRADE = "eq=brightness=0.035:contrast=1.03:saturation=1.04,unsharp=5:5:0.35"
 
 def read_frames(cmd, fw, fh, n):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -339,16 +340,16 @@ QR_KEYS = {
             (30, 0, 1820, 190, 2080), (54, 0, 1855, 170, 2110), (75, 0, 1880, 170, 2140)]],
     14.10: [[(0, 403, 1753, 560, 1950), (6, 392, 1736, 549, 1939), (12, 392, 1753, 537, 1950),
              (18, 358, 1770, 526, 1960), (24, 336, 1770, 504, 1975), (27, 336, 1770, 493, 1978)]],
-    17.50: [[(0, 20, 1730, 180, 1970), (6, 180, 1760, 345, 2005), (10, 180, 1760, 345, 2005)],
-            [(26, 30, 1760, 210, 2000), (34, 30, 1760, 210, 2000)],
-            [(50, 20, 1760, 240, 2000), (58, 20, 1760, 240, 2000)]],
+    17.50: [[(0, 20, 1730, 180, 1970), (6, 180, 1760, 345, 2005), (10, 180, 1760, 345, 2005),
+             (26, 30, 1760, 210, 2000), (34, 30, 1760, 210, 2000), (50, 20, 1760, 240, 2000),
+             (65, 20, 1760, 240, 2000)]],
     26.36: [[(0, 380, 1652, 549, 1838), (6, 380, 1652, 537, 1840), (12, 397, 1652, 565, 1840),
              (18, 403, 1669, 554, 1866), (24, 392, 1680, 526, 1866), (30, 364, 1680, 504, 1866),
              (36, 370, 1669, 520, 1866), (42, 380, 1652, 510, 1840), (48, 358, 1669, 504, 1840),
              (54, 364, 1647, 532, 1815), (60, 370, 1630, 526, 1820), (66, 380, 1630, 537, 1830),
              (73, 370, 1647, 526, 1835)]],
-    30.92: [[(0, 616, 1978, 773, 2163), (6, 605, 2017, 762, 2203), (9, 600, 2030, 760, 2220)],
-            [(46, 560, 2017, 725, 2203), (48, 554, 2017, 722, 2203), (54, 459, 1928, 616, 2124),
+    30.92: [[(0, 616, 1978, 773, 2163), (6, 605, 2017, 762, 2203), (9, 600, 2030, 760, 2220),
+             (46, 560, 2017, 725, 2203), (48, 554, 2017, 722, 2203), (54, 459, 1928, 616, 2124),
              (60, 448, 1945, 605, 2152)]],
 }
 
@@ -370,7 +371,7 @@ def hide_boxes(fr, boxes):
     fr = fr.copy()
     h, w = fr.shape[:2]
     for x0, y0, x1, y1 in boxes:
-        cx, cy, bw, bh = (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) * 1.45, (y1 - y0) * 1.40
+        cx, cy, bw, bh = (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) * 1.65, (y1 - y0) * 1.60
         bw = bh = max(bw, bh, 150)
         X0, Y0 = int(max(0, cx - bw / 2 - 30)), int(max(0, cy - bh / 2 - 30))
         X1, Y1 = int(min(w, cx + bw / 2 + 30)), int(min(h, cy + bh / 2 + 30))
@@ -428,7 +429,9 @@ def math_bg(extra=260):
     img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(0.8)))
     return img
 
-MATH_BG = math_bg()
+import sys as _s; _s.path.insert(0, _HERE)
+from algebra_bg import make_bg
+MATH_BG = make_bg(extra_h=260)
 
 def page_with_bg(page, t):
     off = int((t * 40) % 250)
@@ -523,13 +526,12 @@ def compose_footage(arr, t_loc, dur, punch):
     x0 = (SW - cw) / 2
     y0 = (SH - ch) / 2
     im = Image.fromarray(arr).resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + cw, y0 + ch))
-    a = np.asarray(im, np.float32) * SHADE
-    return Image.fromarray(a.astype(np.uint8)).convert("RGBA")
+    return im.convert("RGBA")
 
 # ---------------------------------------------------------------- render video
 silent = os.path.join(WORK, "video_noaudio.mp4")
 enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-                        "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "17",
+                        "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "14", "-profile:v", "high",
                         "-pix_fmt", "yuv420p", silent], stdin=subprocess.PIPE)
 PAGE = None
 QR_DEBUG = []
@@ -538,7 +540,7 @@ for (t0, t1, src, a, b, opt) in SEGS:
     n = f1 - f0
     if src == "TUT":
         if PAGE is None:
-            pg = np.asarray(page_still(), np.float32) * SHADE
+            pg = np.asarray(page_still(), np.float32)
             PAGE = Image.fromarray(pg.astype(np.uint8)).convert("RGBA")
         frames = []
         first = True
