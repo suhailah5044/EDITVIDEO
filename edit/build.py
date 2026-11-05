@@ -555,11 +555,7 @@ for (t0, t1, src, a, b, opt) in SEGS:
             arr = frames[min(i, len(frames) - 1)][0]
             t = (f0 + i) / FPS
             frame = paste_panel(page_with_bg(PAGE, t), arr, i / FPS, None if t_exit is None else t_exit - t)
-            z = 1.0 + 0.03 * i / n
-            # little camera shake when the panel lands
-            if 7 <= i <= 12:
-                z += 0.012 * (1 if i % 2 else -1)
-            frame = zoom_frame(frame, z)
+            # page stays completely still (no zoom, no shake)
             draw_overlays(frame, t)
             enc.stdin.write(frame.convert("RGB").tobytes())
         continue
@@ -621,7 +617,15 @@ def impact_sound(d=0.55):
     s_ = boom + hit
     return (s_ / np.max(np.abs(s_))).astype(np.float32)
 
-pop = pop_sound()
+def ting_sound(d=0.55):
+    t = np.arange(int(SR * d)) / SR
+    s_ = (np.sin(2 * np.pi * 1760 * t) * 1.0 + np.sin(2 * np.pi * 2640 * t) * 0.45
+          + np.sin(2 * np.pi * 4410 * t) * 0.25 * np.exp(-t * 18)) * np.exp(-t * 9)
+    a = int(SR * 0.003)
+    s_[:a] *= np.linspace(0, 1, a)
+    return (s_ / np.max(np.abs(s_))).astype(np.float32)
+
+pop = ting_sound()
 whoosh = whoosh_sound()
 impact = impact_sound()
 track = np.zeros(int(SR * (TOTAL + 1.0)), np.float32)
@@ -629,7 +633,7 @@ def put(snd, t, g):
     i = max(0, int(t * SR))
     track[i:i + snd.size] += snd[: max(0, track.size - i)] * g
 for pt in POPS:
-    put(pop, pt - 0.01, 0.42)
+    put(pop, pt - 0.005, 0.22)
 CUTS = [sg[0] for sg in SEGS[1:]]
 for c in CUTS:
     put(whoosh, c - 0.24, 0.20)
