@@ -17,15 +17,15 @@ TR = 0.6  # slide transition length (centered on boundary)
 B = [0, 2.40, 6.33, 10.48, 13.58, 16.68, 19.25, 20.86, 22.36, TOTAL]
 SLIDES = [
     # id, media, kind, object-position
-    ("s1", "assets/s1.mp4", "video", "50% 45%"),   # Menolak algebra page overview
+    ("s1", "assets/s1.mp4", "video", "50% 62%"),   # Menolak algebra page overview
     ("s2", "assets/s2.jpg", "image", "50% 50%"),   # Menambah algebra page (still photo)
-    ("s3", "assets/s3.mp4", "video", "50% 40%"),   # pointer on menolak steps
-    ("s4", "assets/s4.mp4", "video", "50% 42%"),   # steps close-up
+    ("s3", "assets/s3.mp4", "video", "50% 55%"),   # pointer on menolak steps
+    ("s4", "assets/s4.mp4", "video", "50% 55%"),   # steps close-up
     ("s5", "assets/s5.mp4", "video", "50% 45%"),   # flipping pages
     ("s6", "assets/s6.mp4", "video", "50% 50%"),   # kandungan
     ("s7", "assets/s7.mp4", "video", "50% 45%"),   # persamaan linear page
     ("s8", "assets/s8.mp4", "video", "50% 40%"),   # set latihan + QR video
-    ("s9", "assets/s9.mp4", "video", "50% 45%"),   # cover - CTA
+    ("s9", "assets/s9.mp4", "video", "50% 60%"),   # cover - CTA
 ]
 
 # ---------------------------------------------------------------- captions
@@ -125,12 +125,32 @@ def chime(t0, gain):
         add(sig, t0 + d, gain)
 
 
-pitches = [740, 830, 880, 988, 830, 932]
-POP = {}
+def ting(f):
+    """bright bell 'ting' - fundamental + inharmonic partials, quick attack"""
+    n = int(0.45 * SR)
+    out = []
+    for i in range(n):
+        t = i / SR
+        a = 1 - math.exp(-t * 2500)
+        v = (math.sin(2 * math.pi * f * t) * math.exp(-t * 9)
+             + 0.45 * math.sin(2 * math.pi * f * 2.76 * t) * math.exp(-t * 16)
+             + 0.2 * math.sin(2 * math.pi * f * 5.4 * t) * math.exp(-t * 28))
+        out.append(v * a)
+    return out
+
+
+# "ting ting ting": one ting per word, rising pitch inside each caption
+scale_hz = [1568, 1760, 1976, 2093, 2349, 2637]
+TING = {}
 for i, c in enumerate(caps):
-    f = pitches[i % len(pitches)]
-    POP.setdefault(f, pop(f))
-    add(POP[f], max(0, c["s"] - 0.01), 0.16 if not c["emo"] else 0.2)
+    for j, w in enumerate(c["w"]):
+        f = scale_hz[min(j, len(scale_hz) - 1)]
+        TING.setdefault(f, ting(f))
+        add(TING[f], max(0, w["s"] - 0.005), 0.10 if j else 0.13)
+    if c["emo"]:
+        f = 2637
+        TING.setdefault(f, ting(f))
+        add(TING[f], c["w"][-1]["s"] + 0.12, 0.10)
 W0 = whoosh()
 for bt in B[1:-1]:
     add(W0, bt - 0.33, 0.30)
@@ -142,7 +162,12 @@ with wave.open(str(ROOT / "assets/sfx.wav"), "w") as wf:
     sc = 0.9 / peak if peak > 0.9 else 1.0
     wf.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, v * sc)) * 32767)) for v in buf[: int(SR * TOTAL)]))
 
+
 # ---------------------------------------------------------------- HTML
+# Layout follows the reference reel: black top band with faint white algebra
+# symbols + neat caption on top; ORIGINAL footage full-width in the lower part.
+VID_TOP = 600          # footage area starts here (px)
+VID_H = H - VID_TOP    # 1320 px tall, full 1080 width
 slides_html, slide_js = [], []
 for i, (sid, src, kind, pos) in enumerate(SLIDES):
     s = B[i] if i == 0 else B[i] - TR / 2
@@ -157,27 +182,22 @@ for i, (sid, src, kind, pos) in enumerate(SLIDES):
         media = f'<img id="{sid}-m" class="media" src="{src}" style="object-position:{pos}" alt="">'
     slides_html.append(
         f'<div class="slide clip" id="{sid}" data-start="{s:.3f}" data-duration="{d}" data-track-index="{1 + i % 2}"{hidden}>'
-        f'<div class="card">{media}<div class="sheen"></div></div></div>')
-    slide_js.append({"id": sid, "s": round(s, 3), "e": round(e, 3), "b": B[i], "b2": B[i + 1]})
+        f'<div class="frame">{media}</div></div>')
+    slide_js.append({"id": sid, "s": round(s, 3), "e": round(e, 3)})
 
 cap_html = []
 for i, c in enumerate(caps):
-    spans = []
-    for j, w in enumerate(c["w"]):
-        cls = "w k" if w["k"] else "w"
-        spans.append(f'<span class="{cls}" id="c{i}w{j}">{html.escape(w["t"])}</span>')
+    spans = [f'<span class="w" id="c{i}w{j}">{html.escape(w["t"])}</span>' for j, w in enumerate(c["w"])]
     if c["emo"]:
         spans.append(f'<span class="w emo" id="c{i}e">{c["emo"]}</span>')
     cap_html.append(f'<div class="cap" id="c{i}">{" ".join(spans)}</div>')
 
-SYMBOLS = ["+", "−", "×", "÷", "=", "a⁄b", "x²", "½", "√", "∑", "c⁄d", "%", "y", "π"]
-rs = random.Random(11)
-deco = []
-for i in range(22):
-    x, y = rs.uniform(-40, W - 40), rs.uniform(-40, H - 40)
-    sz = rs.choice([54, 70, 90, 120, 150])
-    rot = rs.uniform(-25, 25)
-    deco.append(f'<div class="sym" id="sym{i}" style="left:{x:.0f}px;top:{y:.0f}px;font-size:{sz}px;transform:rotate({rot:.0f}deg)">{SYMBOLS[i % len(SYMBOLS)]}</div>')
+# faint algebra symbols in the black band (like the reference)
+SYM = [("×", 90, 70, 46), ("( )", 470, 40, 40), ("x²", 900, 60, 48), ("+", 160, 230, 44), ("5x", 610, 170, 40),
+       ("=", 760, 280, 46), ("÷", 60, 420, 44), ("−", 980, 400, 50), ("a⁄b", 330, 520, 40), ("y", 860, 520, 44),
+       ("√", 250, 120, 42), ("½", 690, 470, 40), ("π", 990, 200, 40), ("%", 420, 300, 36)]
+deco = "".join(f'<div class="sym" id="sym{i}" style="left:{x}px;top:{y}px;font-size:{z}px">{html.escape(t)}</div>'
+               for i, (t, x, y, z) in enumerate(SYM))
 
 DATA = json.dumps({"slides": slide_js, "caps": [{"s": c["s"], "e": c["e"], "w": [w["s"] for w in c["w"]], "emo": bool(c["emo"])} for c in caps]})
 
@@ -190,64 +210,41 @@ page = f"""<!doctype html>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@hyperframes/core/dist/hyperframe.runtime.iife.js"></script>
 <style>
-@font-face {{ font-family:"Jakarta"; font-weight:200 800; font-style:normal; font-display:block; src:url(assets/jakarta.woff2) format("woff2"); }}
-:root {{
-  --bg0:#12060b; --bg1:#3a0f17; --maroon:#9b2d24; --gold:#f6c33b; --plum:#3b1a5c;
-  --ink:#ffffff; --font:"Jakarta","Noto Color Emoji",system-ui,sans-serif;
-}}
+@font-face {{ font-family:"Montserrat"; font-weight:600 900; font-style:normal; font-display:block; src:url(assets/montserrat-upright.woff2) format("woff2"); }}
+:root {{ --bg:#0b0b0c; --ink:#ffffff; --font:"Montserrat","Noto Color Emoji",sans-serif; }}
 * {{ margin:0; padding:0; box-sizing:border-box; }}
-html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg0); }}
-#main {{ position:relative; width:{W}px; height:{H}px; overflow:hidden; font-family:var(--font); }}
+html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }}
+#main {{ position:relative; width:{W}px; height:{H}px; overflow:hidden; font-family:var(--font); background:var(--bg); }}
 
-/* ---------- background ---------- */
-.bg {{ position:absolute; inset:0; overflow:hidden;
-  background: radial-gradient(120% 80% at 50% 0%, #4a1420 0%, rgba(74,20,32,0) 60%),
-              radial-gradient(90% 60% at 50% 100%, #2a0f3a 0%, rgba(42,15,58,0) 70%),
-              linear-gradient(180deg, #1c0810 0%, var(--bg0) 55%, #0c0612 100%); }}
-.blob {{ position:absolute; border-radius:50%; filter:blur(110px); opacity:.55; will-change:transform; }}
-#blobA {{ width:760px; height:760px; left:-260px; top:-160px; background:radial-gradient(circle, #c23a2c 0%, rgba(194,58,44,0) 70%); }}
-#blobB {{ width:700px; height:700px; right:-280px; top:620px; background:radial-gradient(circle, #f6b52e 0%, rgba(246,181,46,0) 70%); opacity:.38; }}
-#blobC {{ width:900px; height:900px; left:-200px; bottom:-420px; background:radial-gradient(circle, #6b2fa8 0%, rgba(107,47,168,0) 70%); opacity:.45; }}
-.sym {{ position:absolute; color:#fff; opacity:.06; font-weight:800; line-height:1; will-change:transform; }}
-.rays {{ position:absolute; inset:-20%; opacity:.06;
-  background: repeating-conic-gradient(from 0deg at 50% 0%, rgba(255,214,120,.0) 0deg 8deg, rgba(255,214,120,.55) 9deg 10deg, rgba(255,214,120,0) 11deg 20deg); }}
-.grain {{ position:absolute; inset:0; pointer-events:none; opacity:.16; mix-blend-mode:overlay;
-  background-image: radial-gradient(rgba(255,255,255,.10) 1px, transparent 1.2px), radial-gradient(rgba(0,0,0,.25) 1px, transparent 1.2px);
-  background-size:3px 3px,5px 5px; background-position:0 0,1px 2px; }}
-.vignette {{ position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%); }}
+/* black band + algebra symbols */
+.band {{ position:absolute; left:0; top:0; width:{W}px; height:{VID_TOP + 140}px;
+  background:radial-gradient(90% 70% at 50% 35%, #1b1b1d 0%, #0b0b0c 70%); }}
+.sym {{ position:absolute; color:#fff; opacity:.13; font-weight:800; line-height:1; will-change:transform; }}
 
-/* ---------- slides ---------- */
-.slide {{ position:absolute; left:0; top:0; width:{W}px; height:{H}px; }}
-.card {{ position:absolute; left:80px; top:190px; width:920px; height:1290px; border-radius:44px; overflow:hidden;
-  background:#1a0d12; transform-origin:50% 60%;
-  box-shadow: 0 50px 120px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.10), 0 0 90px rgba(246,195,59,.12); }}
-.media {{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; will-change:transform; }}
-.sheen {{ position:absolute; inset:0; pointer-events:none;
-  background: linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 18%, rgba(0,0,0,0) 80%, rgba(0,0,0,.22) 100%); }}
+/* original footage, full width, no filters */
+.slide {{ position:absolute; left:0; top:{VID_TOP}px; width:{W}px; height:{VID_H}px; }}
+.frame {{ position:absolute; inset:0; overflow:hidden; }}
+.media {{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }}
+.fade {{ position:absolute; left:0; top:{VID_TOP - 2}px; width:{W}px; height:170px; pointer-events:none;
+  background:linear-gradient(180deg, var(--bg) 0%, rgba(11,11,12,.55) 45%, rgba(11,11,12,0) 100%); }}
 
-/* ---------- captions (white, no box) ---------- */
-#captions {{ position:absolute; left:60px; right:60px; top:1530px; height:220px; }}
+/* captions: neat, upright, white, no box, top band */
+#captions {{ position:absolute; left:70px; right:70px; top:300px; height:200px; }}
 .cap {{ position:absolute; left:0; right:0; top:0; text-align:center; visibility:hidden;
-  font-weight:800; font-size:64px; line-height:1.18; letter-spacing:-.01em; color:var(--ink);
-  text-shadow: 0 4px 18px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.45); }}
+  font-weight:800; font-size:54px; line-height:1.22; letter-spacing:.035em; color:var(--ink);
+  text-shadow:0 3px 14px rgba(0,0,0,.6); }}
 .w {{ display:inline-block; }}
-.w.k {{ font-weight:800; }}
-.emo {{ font-size:58px; margin-left:4px; text-shadow:none; }}
+.emo {{ font-size:50px; margin-left:6px; text-shadow:none; }}
 </style>
 </head>
 <body>
 <div id="main" data-composition-id="main" data-width="{W}" data-height="{H}" data-start="0" data-duration="{TOTAL}">
-  <div class="bg" id="bg">
-    <div class="rays" id="rays"></div>
-    <div class="blob" id="blobA"></div><div class="blob" id="blobB"></div><div class="blob" id="blobC"></div>
-    {''.join(deco)}
-    <div class="vignette"></div>
-  </div>
+  <div class="band">{deco}</div>
   {''.join(slides_html)}
+  <div class="fade"></div>
   <div id="captions">{''.join(cap_html)}</div>
-  <div class="grain"></div>
   <audio id="vo" src="assets/vo.m4a" data-start="0" data-duration="{VO_DUR}" data-track-index="40"></audio>
-  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="{TOTAL}" data-track-index="41" data-volume="1"></audio>
+  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="{TOTAL}" data-track-index="41"></audio>
 </div>
 <script>
 (function(){{
@@ -256,55 +253,42 @@ html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg0); 
   window.__timelines = window.__timelines || {{}};
   var tl = gsap.timeline({{ paused:true }});
 
-  // ---- living background (finite tweens spanning the whole video)
-  tl.fromTo("#blobA", {{x:0,y:0,scale:1}}, {{x:260,y:380,scale:1.25,duration:T,ease:"sine.inOut"}}, 0);
-  tl.fromTo("#blobB", {{x:0,y:0}}, {{x:-320,y:-420,duration:T,ease:"sine.inOut"}}, 0);
-  tl.fromTo("#blobC", {{x:0,scale:1}}, {{x:300,scale:1.2,duration:T,ease:"sine.inOut"}}, 0);
-  tl.fromTo("#rays", {{rotation:-6}}, {{rotation:6,duration:T,ease:"none"}}, 0);
-  for (var i=0;i<22;i++) {{
+  // symbols drift very slowly
+  for (var i=0;i<{len(SYM)};i++) {{
     var dir = (i%2?1:-1);
-    tl.to("#sym"+i, {{ y: -140 - (i%5)*40, x: dir*(30+(i%3)*25), rotation: "+="+(dir*25), duration:T, ease:"none" }}, 0);
+    tl.fromTo("#sym"+i, {{y:0,x:0,rotation:0}}, {{ y: dir*(18+(i%4)*8), x: -dir*(10+(i%3)*8), rotation: dir*8, duration:T, ease:"sine.inOut" }}, 0);
   }}
 
-  // ---- slides: smooth swipe between pages
+  // footage: smooth horizontal swipe between shots (no zoom, no filter)
   D.slides.forEach(function(s, i){{
-    var card = "#"+s.id+" .card", m = "#"+s.id+"-m", last = i===D.slides.length-1;
+    var el = "#"+s.id, last = i===D.slides.length-1;
     if (i>0) {{
-      tl.set("#"+s.id, {{autoAlpha:1}}, s.s);
-      tl.fromTo(card, {{x:1150, rotation:7, scale:.92}}, {{x:0, rotation:0, scale:1, duration:TR, ease:"power3.inOut"}}, s.s);
+      tl.set(el, {{autoAlpha:1}}, s.s);
+      tl.fromTo(el, {{xPercent:100}}, {{xPercent:0, duration:TR, ease:"power3.inOut"}}, s.s);
     }} else {{
-      tl.from(card, {{y:120, scale:.9, autoAlpha:0, duration:.7, ease:"power3.out"}}, 0);
+      tl.from(el, {{autoAlpha:0, duration:.4, ease:"power2.out"}}, 0);
     }}
-    // slow push-in on the media + gentle float of the card (mid-scene life)
-    tl.fromTo(m, {{scale:1.04}}, {{scale:1.14, duration:s.e-s.s, ease:"none"}}, s.s);
-    var floatStart = s.s + (i>0?TR:0.7), floatEnd = last ? T : s.e - TR;
-    if (floatEnd - floatStart > 0.4) tl.to(card, {{y:-10, duration:(floatEnd-floatStart)/2, yoyo:true, repeat:1, ease:"sine.inOut"}}, floatStart);
     if (!last) {{
-      tl.to(card, {{x:-1150, rotation:-7, scale:.92, duration:TR, ease:"power3.inOut"}}, s.e-TR);
-      tl.set("#"+s.id, {{autoAlpha:0}}, s.e);
-    }} else {{
-      // CTA: little heartbeat on the cover
-      tl.to(card, {{scale:1.035, duration:.35, yoyo:true, repeat:3, ease:"sine.inOut"}}, 24.9);
+      tl.to(el, {{xPercent:-100, duration:TR, ease:"power3.inOut"}}, s.e-TR);
+      tl.set(el, {{autoAlpha:0}}, s.e);
     }}
   }});
 
-  // ---- captions: word-by-word pop, white, no box
+  // captions: word-by-word "ting" pop
   D.caps.forEach(function(c, i){{
     var id = "#c"+i;
     tl.set(id, {{autoAlpha:1}}, c.s);
     c.w.forEach(function(ws, j){{
-      tl.from(id+"w"+j, {{y:26, scale:.82, autoAlpha:0, duration:.26, ease:"back.out(2.2)"}}, ws);
+      tl.from(id+"w"+j, {{y:18, scale:.85, autoAlpha:0, duration:.22, ease:"back.out(2.4)"}}, ws);
     }});
     if (c.emo) {{
-      var lastW = c.w[c.w.length-1];
-      tl.from(id+"e", {{scale:0, rotation:-30, autoAlpha:0, duration:.35, ease:"back.out(3)"}}, lastW + .12);
-      tl.to(id+"e", {{rotation:10, duration:.25, yoyo:true, repeat:1, ease:"sine.inOut"}}, lastW + .5);
+      var lw = c.w[c.w.length-1];
+      tl.from(id+"e", {{scale:0, autoAlpha:0, duration:.3, ease:"back.out(3)"}}, lw + .12);
     }}
-    tl.to(id, {{autoAlpha:0, y:-14, duration:.12, ease:"power1.in"}}, c.e - .12);
-    tl.set(id, {{y:0}}, c.e);
+    tl.to(id, {{autoAlpha:0, duration:.12, ease:"power1.in"}}, c.e - .12);
   }});
 
-  tl.to({{}}, {{duration:.01}}, T - .01); // pin the duration
+  tl.to({{}}, {{duration:.01}}, T - .01);
   window.__timelines["main"] = tl;
 }})();
 </script>

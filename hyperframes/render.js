@@ -25,7 +25,7 @@ const DIR = __dirname;
 
   const silent = OUT.replace(/\.mp4$/, '.silent.mp4');
   const ff = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
-    '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', silent], { stdio: ['pipe', 'inherit', 'inherit'] });
+    '-vf', 'scale=out_color_matrix=bt709:out_range=tv', '-c:v', 'libx264', '-preset', 'medium', '-crf', '14', '-pix_fmt', 'yuv420p', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', silent], { stdio: ['pipe', 'inherit', 'inherit'] });
 
   for (let f = 0; f < n; f++) {
     const t = f / FPS;
@@ -40,7 +40,7 @@ const DIR = __dirname;
         return new Promise(r => { v.addEventListener('seeked', r, { once: true }); v.currentTime = lt; });
       }));
     }, t);
-    const buf = await page.screenshot({ type: 'jpeg', quality: 92 });
+    const buf = await page.screenshot({ type: 'jpeg', quality: 100 });
     if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
     if (f % 60 === 0) process.stdout.write(`frame ${f}/${n}\n`);
   }
