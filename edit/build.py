@@ -210,7 +210,7 @@ def top_shade():
     return (1 - a)[..., None].astype(np.float32)
 SHADE = top_shade()
 
-GRADE = "eq=brightness=0.035:contrast=1.03:saturation=1.04,unsharp=5:5:0.35"
+GRADE = "null"   # keep the original colours (no filter)
 
 def read_frames(cmd, fw, fh, n):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
