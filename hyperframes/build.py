@@ -1,7 +1,7 @@
 """Generate the HyperFrames composition (index.html) + SFX track for the
 "Menolak Algebra / Kuasai Algebra" reel.
 
-Run:  python3 build.py   -> writes index.html, assets/sfx.wav, captions.json
+Run:  python3 build.py   -> writes index.html, captions.json
 """
 import json, math, wave, struct, random, html
 from pathlib import Path
@@ -10,7 +10,7 @@ ROOT = Path(__file__).parent
 W, H = 1080, 1920
 TOTAL = 27.6
 VO_DUR = 27.35
-TR = 0.6  # slide transition length (centered on boundary)
+TR = 0.3  # short cross-dissolve between clips (centered on boundary)
 
 # ---------------------------------------------------------------- slides
 # boundaries follow the voice-over beats
@@ -76,97 +76,10 @@ for i, c in enumerate(caps):
         c["e"] = TOTAL - 0.05
 json.dump(caps, open(ROOT / "captions.json", "w"), ensure_ascii=False, indent=1)
 
-# ---------------------------------------------------------------- SFX (synthesised, deterministic)
-SR = 48000
-buf = [0.0] * int(SR * TOTAL + SR)
-rnd = random.Random(7)
-
-
-def add(sig, t0, gain):
-    o = int(t0 * SR)
-    for i, v in enumerate(sig):
-        if 0 <= o + i < len(buf):
-            buf[o + i] += v * gain
-
-
-def pop(f0=880.0):
-    """soft bubbly 'pop' - fast downward pitch sweep + click"""
-    n = int(0.11 * SR)
-    out, ph = [], 0.0
-    for i in range(n):
-        t = i / SR
-        f = f0 * (1.9 - 0.9 * min(1, t / 0.05))
-        ph += 2 * math.pi * f / SR
-        env = (1 - math.exp(-t * 900)) * math.exp(-t * 38)
-        out.append(math.sin(ph) * env + 0.25 * math.sin(2 * ph) * env)
-    return out
-
-
-def whoosh(dur=0.55):
-    """filtered noise swell with band sweep - for slide swipes"""
-    n = int(dur * SR)
-    out = []
-    lp = bp = 0.0
-    for i in range(n):
-        x = i / n
-        cut = 0.02 + 0.22 * math.sin(math.pi * x) ** 2
-        w = rnd.uniform(-1, 1)
-        lp += cut * (w - lp)
-        bp += cut * (lp - bp)
-        env = math.sin(math.pi * x) ** 1.6
-        out.append((lp - bp * 0.6) * env * 3.2)
-    return out
-
-
-def chime(t0, gain):
-    for k, (f, d) in enumerate([(1318.5, 0), (1760, 0.07), (2637, 0.14)]):
-        n = int(0.9 * SR)
-        sig = [math.sin(2 * math.pi * f * i / SR) * math.exp(-i / SR * 5) * (1 - math.exp(-i / SR * 400)) for i in range(n)]
-        add(sig, t0 + d, gain)
-
-
-def ting(f):
-    """bright bell 'ting' - fundamental + inharmonic partials, quick attack"""
-    n = int(0.45 * SR)
-    out = []
-    for i in range(n):
-        t = i / SR
-        a = 1 - math.exp(-t * 2500)
-        v = (math.sin(2 * math.pi * f * t) * math.exp(-t * 9)
-             + 0.45 * math.sin(2 * math.pi * f * 2.76 * t) * math.exp(-t * 16)
-             + 0.2 * math.sin(2 * math.pi * f * 5.4 * t) * math.exp(-t * 28))
-        out.append(v * a)
-    return out
-
-
-# "ting ting ting": one ting per word, rising pitch inside each caption
-scale_hz = [1568, 1760, 1976, 2093, 2349, 2637]
-TING = {}
-for i, c in enumerate(caps):
-    for j, w in enumerate(c["w"]):
-        f = scale_hz[min(j, len(scale_hz) - 1)]
-        TING.setdefault(f, ting(f))
-        add(TING[f], max(0, w["s"] - 0.005), 0.10 if j else 0.13)
-    if c["emo"]:
-        f = 2637
-        TING.setdefault(f, ting(f))
-        add(TING[f], c["w"][-1]["s"] + 0.12, 0.10)
-W0 = whoosh()
-for bt in B[1:-1]:
-    add(W0, bt - 0.33, 0.30)
-chime(B[-2] + 0.05, 0.08)
-
-peak = max(abs(v) for v in buf) or 1
-with wave.open(str(ROOT / "assets/sfx.wav"), "w") as wf:
-    wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(SR)
-    sc = 0.9 / peak if peak > 0.9 else 1.0
-    wf.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, v * sc)) * 32767)) for v in buf[: int(SR * TOTAL)]))
-
-
 # ---------------------------------------------------------------- HTML
 # Layout follows the reference reel: black top band with faint white algebra
 # symbols + neat caption on top; ORIGINAL footage full-width in the lower part.
-VID_TOP = 600          # footage area starts here (px)
+VID_TOP = 0            # footage is full screen
 VID_H = H - VID_TOP    # 1320 px tall, full 1080 width
 slides_html, slide_js = [], []
 for i, (sid, src, kind, pos) in enumerate(SLIDES):
@@ -229,22 +142,19 @@ html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }
   background:linear-gradient(180deg, var(--bg) 0%, rgba(11,11,12,.55) 45%, rgba(11,11,12,0) 100%); }}
 
 /* captions: neat, upright, white, no box, top band */
-#captions {{ position:absolute; left:70px; right:70px; top:300px; height:200px; }}
+#captions {{ position:absolute; left:70px; right:70px; top:150px; height:120px; }}
 .cap {{ position:absolute; left:0; right:0; top:0; text-align:center; visibility:hidden;
   font-weight:800; font-size:54px; line-height:1.22; letter-spacing:.035em; color:var(--ink);
-  text-shadow:0 3px 14px rgba(0,0,0,.6); }}
+  text-shadow:0 2px 3px rgba(0,0,0,.75), 0 0 12px rgba(0,0,0,.45), 0 4px 22px rgba(0,0,0,.5); }}
 .w {{ display:inline-block; }}
 .emo {{ font-size:50px; margin-left:6px; text-shadow:none; }}
 </style>
 </head>
 <body>
 <div id="main" data-composition-id="main" data-width="{W}" data-height="{H}" data-start="0" data-duration="{TOTAL}">
-  <div class="band">{deco}</div>
   {''.join(slides_html)}
-  <div class="fade"></div>
   <div id="captions">{''.join(cap_html)}</div>
   <audio id="vo" src="assets/vo.m4a" data-start="0" data-duration="{VO_DUR}" data-track-index="40"></audio>
-  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="{TOTAL}" data-track-index="41"></audio>
 </div>
 <script>
 (function(){{
@@ -253,28 +163,20 @@ html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }
   window.__timelines = window.__timelines || {{}};
   var tl = gsap.timeline({{ paused:true }});
 
-  // symbols drift very slowly
-  for (var i=0;i<{len(SYM)};i++) {{
-    var dir = (i%2?1:-1);
-    tl.fromTo("#sym"+i, {{y:0,x:0,rotation:0}}, {{ y: dir*(18+(i%4)*8), x: -dir*(10+(i%3)*8), rotation: dir*8, duration:T, ease:"sine.inOut" }}, 0);
-  }}
-
-  // footage: smooth horizontal swipe between shots (no zoom, no filter)
+  // footage: plain compilation, short cross-dissolve (no zoom, no filter)
   D.slides.forEach(function(s, i){{
     var el = "#"+s.id, last = i===D.slides.length-1;
     if (i>0) {{
       tl.set(el, {{autoAlpha:1}}, s.s);
-      tl.fromTo(el, {{xPercent:100}}, {{xPercent:0, duration:TR, ease:"power3.inOut"}}, s.s);
+      tl.fromTo(el, {{opacity:0}}, {{opacity:1, duration:TR, ease:"none"}}, s.s);
     }} else {{
-      tl.from(el, {{autoAlpha:0, duration:.4, ease:"power2.out"}}, 0);
     }}
     if (!last) {{
-      tl.to(el, {{xPercent:-100, duration:TR, ease:"power3.inOut"}}, s.e-TR);
       tl.set(el, {{autoAlpha:0}}, s.e);
     }}
   }});
 
-  // captions: word-by-word "ting" pop
+  // captions: word-by-word pop
   D.caps.forEach(function(c, i){{
     var id = "#c"+i;
     tl.set(id, {{autoAlpha:1}}, c.s);
