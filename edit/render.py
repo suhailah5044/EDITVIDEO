@@ -36,8 +36,8 @@ CARDS = [
     dict(t0=35.16, t1=40.80, label="DAPATKAN SEKARANG", text="Tekan [beg kuning] di bawah", cta=True, twinkle=True),
 ]
 # Everything sits above the head: in the talking shots the head starts ~y=250.
-LABEL_Y = 108      # centre of the small label line
-LINE1_Y = 160      # centre of first caption line (single-line captions end ~y=190)
+LABEL_Y = 148      # centre of the small label line
+LINE1_Y = 200      # centre of first caption line (single-line captions end ~y=190)
 LINE_H = 60
 MAX_W = 1000
 WORD_STAGGER = 0.055
