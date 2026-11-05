@@ -1,44 +1,47 @@
-"""Edit 'Transisi Tahun 1' — white-box captions, zoom punches, SFX on cuts.
+"""Edit 'Transisi Tahun 1': captions + floating ABC/Jawi/123 doodles + kid-style SFX.
 
-Usage: python3 render.py RAW.mov OUT.mp4 [--still T]
+Footage colours are never touched: the overlay is composited onto the original
+HLG HDR video. Usage: python3 render.py RAW.mov OUT_PREFIX
 """
 import math, subprocess, sys, wave
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 W, H, FPS = 1080, 1920, 30
 SR = 48000
 FONT_DIR = "/usr/share/fonts/opentype/inter/"
-F_MAIN = ImageFont.truetype(FONT_DIR + "InterDisplay-Black.otf", 54)
-F_LABEL = ImageFont.truetype(FONT_DIR + "InterDisplay-Bold.otf", 26)
-F_CHIP = ImageFont.truetype(FONT_DIR + "InterDisplay-ExtraBold.otf", 44)
+F_MAIN = ImageFont.truetype(FONT_DIR + "InterDisplay-Black.otf", 50)
+F_LABEL = ImageFont.truetype(FONT_DIR + "InterDisplay-Bold.otf", 24)
 
 INK = (20, 20, 24, 255)
 YELLOW = (255, 199, 0, 255)
 WHITE = (255, 255, 255, 255)
 
-# Footage cuts already in the raw (scene detection) — get whoosh + zoom punch.
+# Footage cuts already in the raw (scene detection): whoosh on each.
 CUTS = [3.867, 5.867, 7.267, 8.733, 10.3, 17.967, 21.567, 25.467, 35.167]
-# Extra "jump zoom" punches inside long talking shots: (start, end, zoom)
-PUNCH = [(14.10, 17.967, 1.10), (28.74, 33.10, 1.06)]
 
-# Caption cards. Text in [brackets] gets the yellow marker highlight.
+# Captions. Words in [brackets] are yellow (and wiggle after landing).
 CARDS = [
-    dict(t0=0.05, t1=3.80, label="IBU AYAH, BACA NI!", text="Anak 6 tahun, tahun depan masuk [Tahun 1?]"),
+    dict(t0=0.05, t1=3.80, label="IBU AYAH, BACA NI!", text="Anak 6 tahun, tahun depan | masuk [Tahun~1?]"),
     dict(t0=3.90, t1=6.30, label="TIPS", text="Buat persediaan [dari sekarang]"),
     dict(t0=6.42, t1=10.15, label="MODUL TRANSISI TAHUN 1", text="Bantu anak [praktis] di rumah"),
     dict(t0=10.30, t1=13.95, label=None, text="Anak perlukan masa & [bimbingan]"),
     dict(t0=14.10, t1=17.85, label=None, text="Luangkan masa, buat [sama-sama]"),
-    dict(t0=17.94, t1=21.40, label="SIAP DENGAN", text="[Video Tutorial] + [Jawapan]", ding=True),
+    dict(t0=17.94, t1=21.40, label="SIAP DENGAN", text="[Video Tutorial] + [Jawapan]", twinkle=True),
     dict(t0=21.52, t1=25.22, label=None, text="[Bukan sekadar] buku latihan"),
     dict(t0=25.28, t1=28.62, label="PERSEDIAAN AWAL", text="Tahu tahap [kemahiran asas] anak"),
     dict(t0=28.74, t1=33.02, label="KEMAHIRAN ASAS",
-         chips=[("Membaca", 29.04), ("Menulis", 29.96), ("Mengira", 30.52)]),
+         text="[Membaca] [Menulis] [Mengira]", word_times=[29.04, 29.96, 30.52]),
     dict(t0=33.12, t1=35.05, label=None, text="[Tak perlu tunggu] sekolah bermula"),
-    dict(t0=35.16, t1=40.80, label="DAPATKAN SEKARANG", text="Tekan [beg kuning] di bawah", cta=True, ding=True),
+    dict(t0=35.16, t1=40.80, label="DAPATKAN SEKARANG", text="Tekan [beg kuning] di bawah", cta=True, twinkle=True),
 ]
-CARD_Y = 250  # top of card (keeps clear of face / product)
-MAX_W = 860
+# Everything sits above the head: in the talking shots the head starts ~y=250.
+LABEL_Y = 108      # centre of the small label line
+LINE1_Y = 160      # centre of first caption line (single-line captions end ~y=190)
+LINE_H = 60
+MAX_W = 1000
+WORD_STAGGER = 0.055
+WORD_IN = 0.40
 
 
 # ---------------------------------------------------------------- easing
@@ -53,112 +56,91 @@ def ease_out_cubic(x):
     return 1 - (1 - x) ** 3
 
 
-# ---------------------------------------------------------------- card art
+# ---------------------------------------------------------------- caption sprites
+def text_sprite(txt, font, fill, stroke=4):
+    l, t, r, b = font.getbbox(txt, stroke_width=stroke)
+    pad = 24
+    im = Image.new("RGBA", (r - l + 2 * pad, b - t + 2 * pad), (0, 0, 0, 0))
+    ImageDraw.Draw(im).text((im.width / 2, im.height / 2), txt, font=font, fill=fill, anchor="mm",
+                            stroke_width=stroke, stroke_fill=INK)
+    return im
+
 def parse(text):
-    toks, hl = [], False
+    toks = []
     for part in text.replace("[", "\x00[").replace("]", "]\x00").split("\x00"):
-        if not part:
-            continue
-        on = part.startswith("[")
-        for w in part.strip("[]").split():
-            toks.append((w, on))
+        if part:
+            on = part.startswith("[")
+            toks += [(w.replace("~", " "), on) for w in part.strip("[]").split()]
     return toks
 
-def layout(toks):
-    space = F_MAIN.getlength(" ")
+def build_card(card):
+    space = F_MAIN.getlength(" ") + (14 if card.get("word_times") else 0)
     lines, cur, cw = [], [], 0
-    for w, h in toks:
+    for w, h in parse(card["text"]):
         ww = F_MAIN.getlength(w)
         add = ww + (space if cur else 0)
-        if cur and cw + add > MAX_W - 80:
+        if w == "|":
+            lines.append((cur, cw)); cur, cw = [], 0
+            continue
+        if cur and cw + add > MAX_W:
             lines.append((cur, cw)); cur, cw = [], 0; add = ww
         cur.append((w, h, ww)); cw += add
-    if cur:
-        lines.append((cur, cw))
-    return lines, space
-
-def build_card(card):
-    """Returns RGBA image of the static card + anchor info."""
-    pad_x, pad_y, lh = 44, 30, 66
-    label_h = 44 if card.get("label") else 0
-    if card.get("chips"):
-        chip_w = [F_CHIP.getlength(c) + 56 for c, _ in card["chips"]]
-        inner_w = sum(chip_w) + 18 * (len(chip_w) - 1) + 20
-        body_h = 78
-        lines = None
-    else:
-        lines, space = layout(parse(card["text"]))
-        inner_w = max(w for _, w in lines)
-        body_h = lh * len(lines)
-    if card.get("label"):
-        inner_w = max(inner_w, F_LABEL.getlength(card["label"]) + 40)
-    cw = int(min(MAX_W + 40, inner_w + 2 * pad_x))
-    ch = int(pad_y * 2 + label_h + (14 if label_h else 0) + body_h)
-    sh = 30  # shadow margin
-    img = Image.new("RGBA", (cw + 2 * sh, ch + 2 * sh), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    y = sh + pad_y
-    if card.get("label"):
-        d.text((sh + cw / 2, y + label_h / 2), card["label"], font=F_LABEL, fill=YELLOW, anchor="mm",
-               stroke_width=4, stroke_fill=INK)
-        y += label_h + 10
-    chip_boxes = []
-    if lines:
-        for words, lw_ in lines:
-            x = sh + (cw - lw_) / 2
-            for i, (w, h, ww) in enumerate(words):
-                d.text((x, y + lh / 2 + 1), w, font=F_MAIN, fill=YELLOW if h else WHITE, anchor="lm",
-                       stroke_width=4, stroke_fill=INK)
-                x += ww + space
-            y += lh
-    else:
-        x = sh + (cw - inner_w) / 2
-        for (c, _), w_ in zip(card["chips"], chip_w):
-            chip_boxes.append((int(x), int(y), int(x + w_), int(y + body_h), c))
-            x += w_ + 18
-    return img, chip_boxes
-
-def chip_img(text, w, h):
-    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.text((w / 2, h / 2 + 1), text, font=F_CHIP, fill=YELLOW, anchor="mm", stroke_width=4, stroke_fill=INK)
-    return im
-
-def arrow_img():
-    im = Image.new("RGBA", (120, 140), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((44, 0, 76, 80), 14, fill=YELLOW, outline=INK, width=4)
-    d.polygon([(10, 70), (110, 70), (60, 136)], fill=YELLOW, outline=INK)
-    d.line([(10, 70), (60, 136), (110, 70)], fill=INK, width=4)
-    return im
+    lines.append((cur, cw))
+    words = []
+    y = LINE1_Y if card.get("label") else LINE1_Y - 22
+    for ln, lw in lines:
+        x = (W - lw) / 2
+        for w, h, ww in ln:
+            words.append(dict(img=text_sprite(w, F_MAIN, YELLOW if h else WHITE), cx=x + ww / 2, cy=y, hl=h))
+            x += ww + space
+        y += LINE_H
+    for i, wd in enumerate(words):
+        wd["t"] = (card["word_times"][i] if card.get("word_times")
+                   else card["t0"] + 0.08 + WORD_STAGGER * i)
+        wd["dir"] = -1 if i % 2 else 1
+    card["words"] = words
+    card["label_img"] = text_sprite(card["label"], F_LABEL, YELLOW, 4) if card.get("label") else None
 
 for c in CARDS:
-    c["img"], c["chips_xy"] = build_card(c)
-    if c.get("chips"):
-        c["chip_imgs"] = [chip_img(t, x1 - x0, y1 - y0) for x0, y0, x1, y1, t in c["chips_xy"]]
-ARROW = arrow_img()
+    build_card(c)
 
-# Background doodles (like the floating maths symbols in the reference):
-# ABC, Jawi letters and numbers, faint and slowly floating in the top area.
+
+def scaled(im, s, alpha):
+    if s != 1.0:
+        im = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.BICUBIC)
+    if alpha < 1.0:
+        im = im.copy()
+        im.putalpha(im.getchannel("A").point(lambda v: int(v * alpha)))
+    return im
+
+def put_sprite(frame, im, cx, cy, s=1.0, rot=0.0, alpha=1.0):
+    if alpha <= 0.01 or s <= 0.02:
+        return
+    if rot:
+        im = im.rotate(rot, resample=Image.BICUBIC, expand=True)
+    im = scaled(im, s, alpha)
+    frame.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
+
+
+# ---------------------------------------------------------------- doodles
+# Faint ABC / Jawi / numbers floating in the top area, clear of the head.
 F_DOODLE_LAT = FONT_DIR + "InterDisplay-Black.otf"
 F_DOODLE_JAWI = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 DOODLES = [  # (x, y, size, glyph, jawi?, yellow?, base_rot)
-    (130, 120, 84, "A", False, False, -12), (330, 70, 76, "\u0628", True, True, 8),
-    (560, 110, 64, "1", False, False, 10), (760, 75, 70, "+", False, True, 0),
-    (950, 140, 88, "C", False, False, 14), (60, 330, 78, "\u0627", True, False, 0),
-    (1025, 310, 72, "2", False, True, -10), (60, 520, 66, "a", False, True, 12),
-    (1020, 500, 80, "\u062A", True, False, -8), (250, 600, 60, "B", False, False, -6),
-    (850, 620, 62, "3", False, False, 10), (1000, 690, 56, "=", False, True, 0),
-    (90, 730, 64, "\u062C", True, True, 6),
+    (115, 52, 58, "A", False, False, -12), (330, 40, 52, "ب", True, True, 8),
+    (560, 50, 50, "1", False, False, 10), (770, 44, 54, "+", False, True, 0),
+    (965, 56, 60, "C", False, False, 14), (60, 290, 60, "ا", True, False, 0),
+    (1022, 285, 58, "2", False, True, -10), (55, 420, 56, "a", False, True, 12),
+    (1025, 425, 60, "ت", True, False, -8), (62, 560, 54, "3", False, False, 10),
+    (1018, 565, 52, "ج", True, True, 6),
 ]
 DOODLE_ALPHA = 0.32
 
 def doodle_img(size, glyph, jawi, yellow):
     f = ImageFont.truetype(F_DOODLE_JAWI, int(size * 1.5)) if jawi else ImageFont.truetype(F_DOODLE_LAT, size)
-    pad = size
-    im = Image.new("RGBA", (pad * 2, pad * 2), (0, 0, 0, 0))
+    im = Image.new("RGBA", (size * 2, size * 2), (0, 0, 0, 0))
     col = YELLOW if yellow else WHITE
-    ImageDraw.Draw(im).text((pad, pad), glyph, font=f, fill=col[:3] + (int(255 * DOODLE_ALPHA),), anchor="mm")
+    ImageDraw.Draw(im).text((size, size), glyph, font=f, fill=col[:3] + (int(255 * DOODLE_ALPHA),), anchor="mm")
     return im
 
 DOODLE_IMGS = [doodle_img(sz, g, j, y) for _, _, sz, g, j, y, _ in DOODLES]
@@ -167,7 +149,7 @@ def draw_doodles(frame, t):
     fade = clamp(t / 0.6)
     for i, ((x, y, sz, g, j, yl, rot), im) in enumerate(zip(DOODLES, DOODLE_IMGS)):
         per = 3.2 + 0.37 * i
-        dy = 12 * math.sin(2 * math.pi * t / per + i)
+        dy = 9 * math.sin(2 * math.pi * t / per + i)
         dx = 5 * math.cos(2 * math.pi * t / (per * 1.3) + i * 0.7)
         r = rot + 5 * math.sin(2 * math.pi * t / (per * 1.6) + i)
         a = im.rotate(r, resample=Image.BICUBIC)
@@ -176,74 +158,41 @@ def draw_doodles(frame, t):
         frame.alpha_composite(a, (int(x + dx - a.width / 2), int(y + dy - a.height / 2)))
 
 
-def scaled(im, s, alpha):
-    if s != 1.0:
-        im = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.BILINEAR)
-    if alpha < 1.0:
-        a = im.getchannel("A").point(lambda v: int(v * alpha))
-        im = im.copy(); im.putalpha(a)
-    return im
-
-
+# ---------------------------------------------------------------- caption animation
 def draw_overlays(frame, t):
     draw_doodles(frame, t)
     for c in CARDS:
         if not (c["t0"] <= t < c["t1"] + 0.2):
             continue
-        k_in = clamp((t - c["t0"]) / 0.32)
-        k_out = clamp((t - c["t1"]) / 0.18)
-        s = 0.7 + 0.3 * ease_out_back(k_in)
-        s *= 1 - 0.08 * k_out
-        if c.get("cta") and k_in >= 1:
-            s *= 1 + 0.025 * math.sin((t - c["t0"]) * 2 * math.pi * 1.6)
-        alpha = clamp(k_in * 2.5) * (1 - k_out)
-        if alpha <= 0:
-            continue
-        base = c["img"]
-        if c.get("chips"):
-            base = base.copy()
-            for (x0, y0, x1, y1, _), (_, tc), ci in zip(c["chips_xy"], c["chips"], c["chip_imgs"]):
-                kc = clamp((t - tc) / 0.25)
-                if kc <= 0:
-                    continue
-                cs = 0.5 + 0.5 * ease_out_back(kc, 2.4)
-                im = scaled(ci, cs, clamp(kc * 3))
-                base.alpha_composite(im, (int((x0 + x1) / 2 - im.width / 2), int((y0 + y1) / 2 - im.height / 2)))
-        im = scaled(base, s, alpha)
-        cx, cy = W // 2, CARD_Y + c["img"].height // 2
-        frame.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
-        if c.get("cta"):
-            ka = clamp((t - c["t0"] - 0.35) / 0.3)
-            if ka > 0:
-                bob = 18 * abs(math.sin((t - c["t0"]) * math.pi * 2.2))
-                a = scaled(ARROW, 0.9, ka * (1 - k_out))
-                frame.alpha_composite(a, (W // 2 - a.width // 2, int(CARD_Y + c["img"].height - 10 + bob)))
+        k_out = clamp((t - c["t1"]) / 0.16)
+        out_s, out_a = 1 - 0.35 * ease_out_cubic(k_out), 1 - k_out
+        if c["label_img"] is not None:
+            k = clamp((t - c["t0"]) / 0.3)
+            put_sprite(frame, c["label_img"], W / 2, LABEL_Y - 18 * (1 - ease_out_cubic(k)),
+                       s=(0.4 + 0.6 * ease_out_back(k, 2.2)) * out_s, alpha=clamp(k * 3) * out_a)
+        for wd in c["words"]:
+            d = t - wd["t"]
+            if d < 0:
+                continue
+            k = clamp(d / WORD_IN)
+            e = ease_out_cubic(k)
+            s = 0.15 + 0.85 * ease_out_back(k, 2.8)           # bouncy pop
+            dy = -46 * (1 - e)                                 # drop in from above
+            rot = 14 * wd["dir"] * (1 - e)                     # untwist
+            if wd["hl"] and d > WORD_IN:                       # jelly wiggle after landing
+                u = d - WORD_IN
+                damp = math.exp(-5 * u)
+                rot += 8 * math.sin(2 * math.pi * 3.2 * u) * damp
+                s *= 1 + 0.12 * math.sin(2 * math.pi * 3.2 * u) * damp
+            if c.get("cta") and wd["hl"] and d > 1.2:          # gentle heartbeat on CTA
+                s *= 1 + 0.06 * max(0.0, math.sin(2 * math.pi * 1.4 * (d - 1.2)))
+            put_sprite(frame, wd["img"], wd["cx"], wd["cy"] + dy, s=s * out_s, rot=rot,
+                       alpha=clamp(k * 4) * out_a)
 
 
-# ---------------------------------------------------------------- camera
-SHOTS = [0.0] + CUTS + [99.0]
+# ---------------------------------------------------------------- audio (kid-style)
+PENTA = [1046.5, 1174.7, 1318.5, 1568.0, 1760.0, 2093.0, 2349.3, 2637.0]  # C6 pentatonic up
 
-def zoom_at(t):
-    i = max(j for j in range(len(SHOTS) - 1) if SHOTS[j] <= t)
-    s0, s1 = SHOTS[i], SHOTS[i + 1]
-    z = 1.0 + 0.035 * clamp((t - s0) / max(0.1, min(s1, 40.8) - s0))  # slow push-in
-    if i > 0:  # punch on cut: start tight, settle
-        k = clamp((t - s0) / 0.35)
-        z += 0.07 * (1 - ease_out_cubic(k))
-    for a, b, pz in PUNCH:
-        if a <= t < b:
-            z *= pz
-    return z
-
-def flash_at(t):
-    v = 0.0
-    for c in CUTS:
-        if 0 <= t - c < 0.1:
-            v = max(v, 0.22 * (1 - (t - c) / 0.1))
-    return v
-
-
-# ---------------------------------------------------------------- audio
 def sfx_track(dur):
     n = int(dur * SR) + SR
     out = np.zeros(n, np.float32)
@@ -252,46 +201,54 @@ def sfx_track(dur):
     def put(sig, t):
         i = int(t * SR)
         j = min(n, i + len(sig))
-        if i < n:
-            out[max(0, i):j] += sig[max(0, -i): j - i]
+        if 0 <= i < n:
+            out[i:j] += sig[: j - i]
 
     def whoosh(L=0.42):
         m = int(L * SR)
         noise = rng.standard_normal(m).astype(np.float32)
         tt = np.linspace(0, 1, m)
-        # sweeping one-pole lowpass
         y = np.zeros(m, np.float32); acc = 0.0
         cut = 0.02 + 0.25 * np.sin(np.pi * tt) ** 2
         for k in range(m):
             acc += cut[k] * (noise[k] - acc); y[k] = acc
-        env = np.sin(np.pi * tt) ** 2.2
-        y = y * env
-        return 0.32 * y / (np.abs(y).max() + 1e-9)
+        y = y * np.sin(np.pi * tt) ** 2.2
+        return 0.22 * y / (np.abs(y).max() + 1e-9)
 
-    def pop():
-        m = int(0.09 * SR); tt = np.arange(m) / SR
-        f = 950 * np.exp(-tt * 18) + 380
-        ph = 2 * np.pi * np.cumsum(f) / SR
-        return (0.22 * np.sin(ph) * np.exp(-tt * 38)).astype(np.float32)
+    def xylo(f, vol=0.09):  # wooden xylophone / marimba note
+        m = int(0.4 * SR); tt = np.arange(m) / SR
+        s = (np.sin(2 * np.pi * f * tt) * np.exp(-tt * 16)
+             + 0.35 * np.sin(2 * np.pi * 3.93 * f * tt) * np.exp(-tt * 45))
+        return (vol * s * np.minimum(1, tt / 0.002)).astype(np.float32)
 
-    def ding():
-        m = int(0.9 * SR); tt = np.arange(m) / SR
-        s = sum(a * np.sin(2 * np.pi * f * tt) * np.exp(-tt * d)
-                for f, a, d in [(1568, 1, 5), (3136, .35, 8), (2350, .2, 7), (4700, .1, 12)])
-        return (0.16 * s * np.minimum(1, tt / 0.004)).astype(np.float32)
+    def boing(vol=0.11):  # cartoon spring
+        m = int(0.45 * SR); tt = np.arange(m) / SR
+        f = 260 + 220 * np.exp(-tt * 7) + 35 * np.sin(2 * np.pi * 14 * tt) * np.exp(-tt * 4)
+        s = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-tt * 6)
+        return (vol * s * np.minimum(1, tt / 0.004)).astype(np.float32)
 
-    def tick():
-        m = int(0.05 * SR); tt = np.arange(m) / SR
-        return (0.18 * np.sin(2 * np.pi * 1700 * tt) * np.exp(-tt * 70)).astype(np.float32)
+    def bubble(vol=0.10):  # bubbly "bloop"
+        m = int(0.12 * SR); tt = np.arange(m) / SR
+        f = 500 + 1300 * (tt / tt[-1]) ** 1.5
+        return (vol * np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * tt / tt[-1])).astype(np.float32)
+
+    def twinkle(vol=0.06):  # magic sparkle run
+        sig = np.zeros(int(0.9 * SR), np.float32)
+        for i, f in enumerate([2093, 2637, 3136, 3520, 4186, 3520, 4186, 5274]):
+            x = xylo(f, vol); o = int(i * 0.055 * SR)
+            sig[o:o + len(x)] += x[: len(sig) - o]
+        return sig
 
     for c in CUTS:
         put(whoosh(), c - 0.24)
     for c in CARDS:
-        put(pop(), c["t0"])
-        if c.get("ding"):
-            put(ding(), c["t0"] + 0.05)
-        for _, tc in c.get("chips", []):
-            put(tick(), tc)
+        put(bubble(), c["t0"])
+        for i, wd in enumerate(c["words"]):
+            put(xylo(PENTA[min(i, len(PENTA) - 1)]), wd["t"] + 0.02)
+            if wd["hl"]:
+                put(boing(0.07), wd["t"] + WORD_IN - 0.02)
+        if c.get("twinkle"):
+            put(twinkle(), c["words"][-1]["t"] + 0.15)
     return out
 
 
