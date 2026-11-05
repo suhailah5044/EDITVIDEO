@@ -23,23 +23,28 @@ YELLOW = (255, 212, 0)
 # ---------------------------------------------------------------- timeline
 # (t_start, t_end, source, src_in, src_out, opts)
 # play_dur: if set, the source span plays over this many seconds then the last frame holds.
+# qr: blur any QR code found in the footage.
+# "TUT" segments: frozen Latihan 2 page (IMG_1551 @ PAGE_T) with the tutorial working pasted into the empty box.
+PAGE_T = 3.60
 SEGS = [
-    (0.00, 1.82, "IMG_1551.MOV", 1.30, 3.12, {}),                     # hook: Set Latihan 2
-    (1.82, 5.12, "IMG_1543.MOV", 0.00, 3.30, {}),                     # soalan close-up
-    (5.12, 7.64, "IMG_1544.MOV", 0.40, 2.92, {}),
-    (7.64, 9.90, "screen.mp4", 42.0, 80.0, {}),                        # GSTK -> darab 3t
-    (9.90, 12.80, "screen.mp4", 84.0, 142.0, {"nopunch": True}),        # 12st, 9t - 4 - 3t
-    (12.80, 14.10, "screen.mp4", 162.0, 168.8, {"nopunch": True, "play_dur": 0.55}),  # jawapan 6t-4 / 12st
-    (14.10, 15.02, "IMG_1542.MOV", 0.00, 0.92, {}),                   # nampak susah kan
-    (15.02, 17.50, "IMG_1547.MOV", 0.00, 2.48, {}),                   # pecahan algebra
-    (17.50, 19.70, "IMG_1552.MOV", 2.20, 4.40, {}),                   # stuck / keliru
-    (19.70, 21.84, "IMG_1549.MOV", 0.00, 1.73, {}),                   # buku Kuasai Algebra
-    (21.84, 26.36, "IMG_1546.MOV", 0.00, 4.43, {}),                   # nota ringkas, contoh, latihan
-    (26.36, 28.82, "IMG_1548.MOV", 0.90, 3.36, {}),                   # QR code
-    (28.82, 30.92, "screen.mp4", 2.0, 42.0, {}),                       # video tutorial (lepas scan QR)
-    (30.92, 32.94, "IMG_1545.MOV", 0.00, 4.04, {}),                   # Form 1 - Form 5
-    (32.94, 34.40, "IMG_1552.MOV", 0.00, 1.46, {}),
-    (34.40, TOTAL, "IMG_1549.MOV", 0.00, 1.73, {"play_dur": 1.73}),   # CTA cover
+    (0.00, 1.82, "IMG_1551.MOV", 1.30, 3.12, {"qr": True}),          # hook: Set Latihan 2
+    (1.82, 5.12, "IMG_1543.MOV", 0.00, 3.30, {"qr": True}),          # soalan close-up
+    (5.12, 7.64, "IMG_1544.MOV", 0.40, 2.92, {"qr": True}),
+    (7.64, 14.10, "TUT", 0, 0, {"clips": [                             # follows the VO script only
+        (7.64, 9.90, 80.0, 108.0, None),        # samakan penyebut, darab 3t -> 12st, 9t
+        (9.90, 12.80, 108.0, 142.0, None),      # teruskan langkah -> 9t - 4 - 3t
+        (12.80, 14.10, 162.0, 168.8, 0.55),     # jawapan paling ringkas -> (6t - 4)/12st
+    ]}),
+    (14.10, 15.02, "IMG_1542.MOV", 0.00, 0.92, {"qr": True}),        # nampak susah kan
+    (15.02, 17.50, "IMG_1547.MOV", 0.00, 2.48, {"qr": True}),        # pecahan algebra
+    (17.50, 19.70, "IMG_1552.MOV", 2.20, 4.40, {"qr": True}),        # stuck / keliru
+    (19.70, 21.84, "IMG_1549.MOV", 0.00, 1.73, {}),                  # buku Kuasai Algebra
+    (21.84, 26.36, "IMG_1546.MOV", 0.00, 4.43, {"qr": True}),        # nota ringkas, contoh, latihan
+    (26.36, 28.82, "IMG_1548.MOV", 0.90, 3.36, {"qr": True}),        # QR code (blurred)
+    (28.82, 30.92, "TUT", 0, 0, {"clips": [(28.82, 30.92, 168.8, 84.0, None)]}),  # boleh ulang tengok (rewind)
+    (30.92, 32.94, "IMG_1545.MOV", 0.00, 4.04, {"qr": True}),        # Form 1 - Form 5
+    (32.94, 34.40, "IMG_1552.MOV", 0.00, 1.46, {"qr": True}),
+    (34.40, TOTAL, "IMG_1549.MOV", 0.00, 1.73, {"play_dur": 1.73}),  # CTA cover
 ]
 
 # ---------------------------------------------------------------- overlays
@@ -53,24 +58,26 @@ def FR(t, num, den, c=YELLOW, sz=50):
 
 Y_TEXT = 470          # ~24% from top: not too high, not too low
 GROUPS = [
-    (0.60, 1.78, Y_TEXT, [[T(0.60, "Set Latihan "), T(0.95, "2", YELLOW)]]),
-    (2.70, 7.58, Y_TEXT, [[T(2.70, "Permudahkan")],
-                          [FR(3.40, "3", "4s", YELLOW, 54), T(4.62, "  −  ", YELLOW, 56), FR(4.76, "4 + 3t", "12st", YELLOW, 54)]]),
-    (8.18, 9.86, 400, [[T(8.18, "Samakan penyebut")], [T(9.14, "darab 3t", YELLOW)]]),
-    (10.98, 12.76, 430, [[T(10.98, "Teruskan pengiraan")]]),
-    (13.00, 14.06, 400, [[T(13.00, "Jawapan paling ringkas", WHITE, 54)],
-                         [FR(13.20, "6t − 4", "12st", YELLOW, 54)]]),
-    (14.12, 14.98, Y_TEXT, [[T(14.12, "Nampak "), T(14.44, "susah", YELLOW), T(14.80, " kan?")]]),
-    (15.40, 17.12, Y_TEXT, [[T(15.40, "Pecahan Algebra", YELLOW)]]),
-    (17.22, 19.62, Y_TEXT, [[T(17.22, "Selalu "), T(17.40, "stuck?", YELLOW)]]),
-    (23.12, 26.30, Y_TEXT, [[T(23.12, "Nota ringkas", WHITE, 54), T(23.58, "  •  Contoh", WHITE, 54),
-                             T(24.24, "  •  Latihan", YELLOW, 54)]]),
-    (27.12, 28.78, Y_TEXT, [[T(27.12, "Scan QR", YELLOW)], [T(28.14, "Video tutorial", WHITE, 54)]]),
-    (29.82, 30.88, 430, [[T(29.82, "Boleh ulang tengok")]]),
-    (31.16, 32.90, Y_TEXT, [[T(31.16, "Sesuai untuk", WHITE, 54)], [T(31.52, "Form 1 – Form 5", YELLOW)]]),
-    (33.40, 35.10, Y_TEXT, [[T(33.40, "Nak anak "), T(33.86, "lebih faham?", YELLOW)]]),
-    (35.18, TOTAL, Y_TEXT, [[T(35.18, "Check "), T(35.34, "beg kuning", YELLOW), T(35.60, " sekarang!")]]),
+    # text goes into empty space so it never covers the book content
+    (0.60, 1.78, 960, [[T(0.60, "Set Latihan "), T(0.95, "2", YELLOW)]]),
+    (2.70, 7.58, 1150, [[T(2.70, "Permudahkan")],
+                        [FR(3.40, "3", "4s", YELLOW, 54), T(4.62, "  \u2212  ", YELLOW, 56), FR(4.76, "4 + 3t", "12st", YELLOW, 54)]]),
+    (8.18, 9.86, 835, [[T(8.18, "Samakan penyebut", WHITE, 54), T(9.14, "  darab 3t", YELLOW, 54)]]),
+    (10.98, 12.76, 835, [[T(10.98, "Teruskan pengiraan", WHITE, 54)]]),
+    (13.00, 14.06, 835, [[T(13.00, "Jawapan paling ringkas", WHITE, 54)]]),
+    (13.20, 14.06, 1705, [[FR(13.20, "6t \u2212 4", "12st", YELLOW, 50)]]),
+    (14.12, 14.98, 1000, [[T(14.12, "Nampak "), T(14.44, "susah", YELLOW), T(14.80, " kan?")]]),
+    (15.40, 17.12, 250, [[T(15.40, "Pecahan Algebra", YELLOW)]]),
+    (17.22, 19.62, 300, [[T(17.22, "Selalu "), T(17.40, "stuck?", YELLOW)]]),
+    (23.12, 26.30, 300, [[T(23.12, "Nota ringkas", WHITE, 54), T(23.58, "  \u2022  Contoh", WHITE, 54),
+                          T(24.24, "  \u2022  Latihan", YELLOW, 54)]]),
+    (27.12, 28.78, 950, [[T(27.12, "Scan QR", YELLOW)], [T(28.14, "Video tutorial", WHITE, 54)]]),
+    (29.82, 30.88, 835, [[T(29.82, "Boleh ulang tengok", WHITE, 54)]]),
+    (31.16, 32.90, 300, [[T(31.16, "Sesuai untuk", WHITE, 54)], [T(31.52, "Form 1 \u2013 Form 5", YELLOW)]]),
+    (33.40, 35.10, 250, [[T(33.40, "Nak anak "), T(33.86, "lebih faham?", YELLOW)]]),
+    (35.18, TOTAL, 250, [[T(35.18, "Check "), T(35.34, "beg kuning", YELLOW), T(35.60, " sekarang!")]]),
 ]
+
 
 _fonts = {}
 def font(path, size):
@@ -191,115 +198,255 @@ def draw_overlays(frame, t):
                 im2.putalpha(Image.fromarray(a.astype(np.uint8)))
             frame.alpha_composite(im2, (int(cx - im2.width / 2), int(cy - im2.height / 2)))
 
-# ---------------------------------------------------------------- algebra background (dark)
-def algebra_bg():
-    rng = random.Random(7)
-    yy = np.linspace(0, 1, H)[:, None]
-    xx = np.linspace(0, 1, W)[None, :]
-    r = np.sqrt((xx - 0.5) ** 2 + ((yy - 0.45) * 1.4) ** 2)
-    base_c = np.array([22, 27, 40], np.float32)
-    edge_c = np.array([8, 10, 16], np.float32)
-    k = np.clip(r / 0.9, 0, 1)[..., None]
-    arr = base_c * (1 - k) + edge_c * k
-    img = Image.fromarray(arr.astype(np.uint8)).convert("RGBA")
-    # faint graph-paper grid
-    grid = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    g = ImageDraw.Draw(grid)
-    for x in range(0, W, 60):
-        g.line([(x, 0), (x, H)], fill=(255, 255, 255, 10), width=1)
-    for y in range(0, H, 60):
-        g.line([(0, y), (W, y)], fill=(255, 255, 255, 10), width=1)
-    img.alpha_composite(grid)
-    # scattered algebra symbols
-    syms = ["x²", "÷", "a/b", "+", "−", "=", "(x+y)", "√x", "3t", "4s", "12st", "×",
-            "y²", "π", "ab", "2x+1", "x/y", "%", "a²−b²", "≤", "n³"]
-    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    placed = []
-    tries = 0
-    while len(placed) < 34 and tries < 4000:
-        tries += 1
-        x, y = rng.randint(30, W - 120), rng.randint(40, H - 80)
-        if any((x - px) ** 2 + (y - py) ** 2 < 170 ** 2 for px, py in placed):
-            continue
-        placed.append((x, y))
-        s = rng.choice(syms)
-        sz = rng.randint(38, 74)
-        tile = Image.new("RGBA", (420, 200), (0, 0, 0, 0))
-        ImageDraw.Draw(tile).text((20, 40), s, font=font(F_MATH, sz), fill=(255, 255, 255, rng.randint(16, 30)))
-        tile = tile.rotate(rng.uniform(-18, 18), resample=Image.BICUBIC)
-        layer.alpha_composite(tile, (x - 60, y - 80))
-    img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(0.6)))
-    return img
-
-BG = algebra_bg()
-BG.convert("RGB").save(os.path.join(WORK, "algebra_bg.png"))
-
-# rounded panel mask + shadow for the tutorial screen recording
-SCR_CROP = (56, 44, 856, 560)  # x, y, w, h inside 986x654 (drop toolbar + scrollbar)
-PANEL_W = 1036
-PANEL_H = int(PANEL_W * SCR_CROP[3] / SCR_CROP[2]) // 2 * 2
-PANEL_X = (W - PANEL_W) // 2
-PANEL_Y = 610
-mask = Image.new("L", (PANEL_W, PANEL_H), 0)
-ImageDraw.Draw(mask).rounded_rectangle([0, 0, PANEL_W - 1, PANEL_H - 1], radius=28, fill=255)
-shadow = Image.new("L", (W, H), 0)
-ImageDraw.Draw(shadow).rounded_rectangle([PANEL_X, PANEL_Y + 14, PANEL_X + PANEL_W, PANEL_Y + PANEL_H + 14],
-                                         radius=30, fill=170)
-shadow = shadow.filter(ImageFilter.GaussianBlur(26))
-BG_SCREEN = BG.copy()
-blk = Image.new("RGBA", (W, H), (0, 0, 0, 255))
-blk.putalpha(shadow)
-BG_SCREEN.alpha_composite(blk)
-
-# darker top band on footage so white/yellow text stays readable (no box)
+# ---------------------------------------------------------------- footage look
+# slightly darker top band + edge vignette so the white/yellow text stays readable (no box)
 def top_shade():
     yy = np.linspace(0, 1, H)[:, None]
     xx = np.linspace(-1, 1, W)[None, :]
-    a = np.clip(1 - yy / 0.42, 0, 1) ** 1.5 * 0.50
+    a = np.clip(1 - yy / 0.42, 0, 1) ** 1.5 * 0.40
     vig = np.clip((np.sqrt(xx ** 2 * 0.6 + ((yy - 0.5) * 2) ** 2 * 0.5) - 0.55) / 0.6, 0, 1) * 0.30
     a = np.maximum(a, vig)
     return (1 - a)[..., None].astype(np.float32)
 SHADE = top_shade()
 
-# ---------------------------------------------------------------- frame sources
-def decode(src, a, b, n_out, play_frames):
-    """yield exactly n_out RGB frames: span [a,b] of src stretched over play_frames, then hold last."""
-    path = os.path.join(RAW, src)
-    speed = (b - a) / (play_frames / FPS)
-    is_screen = src.startswith("screen")
-    if is_screen:
-        x, y, w, h = SCR_CROP
-        vf = f"setpts=(PTS-STARTPTS)/{speed:.6f},fps={FPS},crop={w}:{h}:{x}:{y},scale={PANEL_W}:{PANEL_H}:flags=lanczos," \
-             f"eq=contrast=1.04:saturation=1.05"
-        fw, fh = PANEL_W, PANEL_H
-    else:
-        vf = f"setpts=(PTS-STARTPTS)/{speed:.6f},fps={FPS},scale={SW}:{SH}:flags=lanczos," \
-             f"eq=brightness=0.015:contrast=1.07:saturation=1.10:gamma=1.02,unsharp=5:5:0.45"
-        fw, fh = SW, SH
-    cmd = ["ffmpeg", "-v", "error", "-ss", f"{a:.3f}", "-t", f"{b - a + 0.2:.3f}", "-i", path,
-           "-vf", vf, "-frames:v", str(play_frames), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
+GRADE = "eq=brightness=0.015:contrast=1.07:saturation=1.10:gamma=1.02,unsharp=5:5:0.45"
+
+def read_frames(cmd, fw, fh, n):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     size = fw * fh * 3
-    last = None
-    got = 0
-    for i in range(n_out):
-        if got < play_frames:
-            buf = p.stdout.read(size)
-            if len(buf) == size:
-                last = np.frombuffer(buf, np.uint8).reshape(fh, fw, 3)
-                got += 1
-            else:
-                got = play_frames
-        yield last, is_screen
-    p.stdout.close()
-    p.wait()
+    out = []
+    while len(out) < n:
+        buf = p.stdout.read(size)
+        if len(buf) < size:
+            break
+        out.append(np.frombuffer(buf, np.uint8).reshape(fh, fw, 3))
+    p.stdout.close(); p.wait()
+    return out
+
+def decode_footage(src, a, b, play_frames):
+    speed = (b - a) / (play_frames / FPS)
+    vf = f"setpts=(PTS-STARTPTS)/{speed:.6f},fps={FPS},scale={SW}:{SH}:flags=lanczos,{GRADE}"
+    cmd = ["ffmpeg", "-v", "quiet", "-ss", f"{a:.3f}", "-t", f"{b - a + 0.2:.3f}", "-i", os.path.join(RAW, src),
+           "-vf", vf, "-frames:v", str(play_frames), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
+    return read_frames(cmd, SW, SH, play_frames)
+
+# ---------------------------------------------------------------- QR hiding
+import cv2
+_qr = cv2.QRCodeDetectorAruco()
+
+def detect_qr(fr):
+    g = cv2.cvtColor(fr, cv2.COLOR_RGB2GRAY)
+    polys = []
+    try:
+        ok, pts = _qr.detectMulti(g)
+        if ok and pts is not None:
+            polys = [p.astype(np.float32).reshape(4, 2) for p in pts]
+    except cv2.error:
+        pass
+    if not polys:
+        ok, pts = cv2.QRCodeDetector().detect(g)
+        if ok and pts is not None:
+            polys = [pts.astype(np.float32).reshape(4, 2)]
+    # sanity: plausible size
+    return [p for p in polys if 40 < cv2.contourArea(p) ** 0.5 < 900]
+
+def flow_polys(prev, cur, polys):
+    """move polygons from frame prev to frame cur with sparse optical flow."""
+    if not polys:
+        return []
+    g0 = cv2.cvtColor(prev, cv2.COLOR_RGB2GRAY)
+    g1 = cv2.cvtColor(cur, cv2.COLOR_RGB2GRAY)
+    out = []
+    for p in polys:
+        c = p.mean(0)
+        big = (p - c) * 2.2 + c
+        m = np.zeros(g0.shape, np.uint8)
+        cv2.fillConvexPoly(m, big.astype(np.int32), 255)
+        f0 = cv2.goodFeaturesToTrack(g0, 200, 0.01, 6, mask=m)
+        if f0 is None or len(f0) < 6:
+            out.append(p); continue
+        f1, st, _ = cv2.calcOpticalFlowPyrLK(g0, g1, f0, None, winSize=(31, 31), maxLevel=4)
+        good = st.ravel() == 1
+        if good.sum() < 6:
+            out.append(p); continue
+        M, _ = cv2.estimateAffinePartial2D(f0[good], f1[good], method=cv2.RANSAC)
+        if M is None:
+            out.append(p); continue
+        out.append((p @ M[:, :2].T + M[:, 2]).astype(np.float32))
+    return out
+
+def qr_track(frames, max_gap=45):
+    n = len(frames)
+    det = [detect_qr(f) for f in frames]
+    fwd = [None] * n; bwd = [None] * n
+    cur, age = [], 0
+    for i in range(n):
+        if det[i]:
+            cur, age = det[i], 0
+        elif cur and age < max_gap:
+            cur = flow_polys(frames[i - 1], frames[i], cur); age += 1
+        else:
+            cur = []
+        fwd[i] = cur
+    cur, age = [], 0
+    for i in range(n - 1, -1, -1):
+        if det[i]:
+            cur, age = det[i], 0
+        elif cur and age < max_gap:
+            cur = flow_polys(frames[i + 1], frames[i], cur); age += 1
+        else:
+            cur = []
+        bwd[i] = cur
+    res = []
+    for i in range(n):
+        res.append(det[i] if det[i] else (fwd[i] + bwd[i]))
+    return res, sum(1 for d in det if d)
+
+def hide_qr(fr, polys):
+    if not polys:
+        return fr
+    fr = fr.copy()
+    h, w = fr.shape[:2]
+    m = np.zeros((h, w), np.uint8)
+    for p in polys:
+        c = p.mean(0)
+        cv2.fillConvexPoly(m, ((p - c) * 1.28 + c).astype(np.int32), 255)
+    ys, xs = np.nonzero(m)
+    if len(xs) == 0:
+        return fr
+    x0, x1 = max(0, xs.min() - 40), min(w, xs.max() + 40)
+    y0, y1 = max(0, ys.min() - 40), min(h, ys.max() + 40)
+    roi = fr[y0:y1, x0:x1]
+    rh, rw = roi.shape[:2]
+    small = cv2.resize(roi, (max(1, rw // 22), max(1, rh // 22)), interpolation=cv2.INTER_AREA)
+    pix = cv2.resize(small, (rw, rh), interpolation=cv2.INTER_NEAREST)
+    pix = cv2.GaussianBlur(pix, (0, 0), 9)
+    mm = cv2.GaussianBlur(m[y0:y1, x0:x1], (0, 0), 6).astype(np.float32)[..., None] / 255.0
+    fr[y0:y1, x0:x1] = (roi * (1 - mm) + pix * mm).astype(np.uint8)
+    return fr
+
+
+# QR keyframes per footage segment (key = segment start time), in decoded-frame coords (SW x SH = 1242x2208).
+# Each run: [(frame, x0, y0, x1, y1), ...] linearly interpolated between its first and last frame.
+QR_KEYS = {
+    0.00: [[(0, 380, 1850, 590, 2085), (6, 436, 1900, 649, 2141), (12, 464, 1973, 688, 2197),
+            (18, 498, 2085, 721, 2260), (23, 520, 2170, 760, 2300)]],
+    1.82: [[(28, 1170, 2100, 1300, 2260), (30, 1150, 2050, 1260, 2230), (42, 1180, 2034, 1250, 2203),
+            (48, 1057, 2000, 1250, 2200), (54, 1035, 1967, 1250, 2192), (60, 1024, 1945, 1240, 2170),
+            (66, 1024, 1928, 1242, 2170), (72, 946, 1945, 1187, 2180), (78, 924, 1945, 1153, 2192),
+            (84, 896, 1955, 1120, 2192), (98, 888, 1960, 1112, 2196)]],
+    5.12: [[(0, 0, 1680, 240, 1990), (6, 0, 1725, 230, 2010), (12, 0, 1790, 220, 2095),
+            (30, 0, 1820, 190, 2080), (54, 0, 1855, 170, 2110), (75, 0, 1880, 170, 2140)]],
+    14.10: [[(0, 403, 1753, 560, 1950), (6, 392, 1736, 549, 1939), (12, 392, 1753, 537, 1950),
+             (18, 358, 1770, 526, 1960), (24, 336, 1770, 504, 1975), (27, 336, 1770, 493, 1978)]],
+    17.50: [[(0, 20, 1730, 180, 1970), (6, 180, 1760, 345, 2005), (10, 180, 1760, 345, 2005)],
+            [(26, 30, 1760, 210, 2000), (34, 30, 1760, 210, 2000)],
+            [(50, 20, 1760, 240, 2000), (58, 20, 1760, 240, 2000)]],
+    26.36: [[(0, 380, 1652, 549, 1838), (6, 380, 1652, 537, 1840), (12, 397, 1652, 565, 1840),
+             (18, 403, 1669, 554, 1866), (24, 392, 1680, 526, 1866), (30, 364, 1680, 504, 1866),
+             (36, 370, 1669, 520, 1866), (42, 380, 1652, 510, 1840), (48, 358, 1669, 504, 1840),
+             (54, 364, 1647, 532, 1815), (60, 370, 1630, 526, 1820), (66, 380, 1630, 537, 1830),
+             (73, 370, 1647, 526, 1835)]],
+    30.92: [[(0, 616, 1978, 773, 2163), (6, 605, 2017, 762, 2203), (9, 600, 2030, 760, 2220)],
+            [(46, 560, 2017, 725, 2203), (48, 554, 2017, 722, 2203), (54, 459, 1928, 616, 2124),
+             (60, 448, 1945, 605, 2152)]],
+}
+
+def qr_boxes(t0, n):
+    out = [[] for _ in range(n)]
+    for run in QR_KEYS.get(t0, []):
+        for (fa, *ba), (fb, *bb) in zip(run, run[1:]):
+            for f in range(fa, min(fb, n - 1) + 1):
+                u = 0 if fb == fa else (f - fa) / (fb - fa)
+                out[f] = [[ba[k] + (bb[k] - ba[k]) * u for k in range(4)]]
+        f, *b = run[-1]
+        if f < n:
+            out[f] = [b]
+    return out
+
+def hide_boxes(fr, boxes):
+    if not boxes:
+        return fr
+    fr = fr.copy()
+    h, w = fr.shape[:2]
+    for x0, y0, x1, y1 in boxes:
+        cx, cy, bw, bh = (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) * 1.45, (y1 - y0) * 1.40
+        bw = bh = max(bw, bh, 150)
+        X0, Y0 = int(max(0, cx - bw / 2 - 30)), int(max(0, cy - bh / 2 - 30))
+        X1, Y1 = int(min(w, cx + bw / 2 + 30)), int(min(h, cy + bh / 2 + 30))
+        if X1 - X0 < 8 or Y1 - Y0 < 8:
+            continue
+        roi = fr[Y0:Y1, X0:X1]
+        rh, rw = roi.shape[:2]
+        m = np.zeros((rh, rw), np.uint8)
+        cv2.rectangle(m, (int(cx - bw / 2 - X0), int(cy - bh / 2 - Y0)), (int(cx + bw / 2 - X0), int(cy + bh / 2 - Y0)), 255, -1)
+        small = cv2.resize(roi, (max(1, rw // 26), max(1, rh // 26)), interpolation=cv2.INTER_AREA)
+        pix = cv2.GaussianBlur(cv2.resize(small, (rw, rh), interpolation=cv2.INTER_LINEAR), (0, 0), 14)
+        mm = cv2.GaussianBlur(m, (0, 0), 12).astype(np.float32)[..., None] / 255.0
+        fr[Y0:Y1, X0:X1] = (roi * (1 - mm) + pix * mm).astype(np.uint8)
+    return fr
+
+# ---------------------------------------------------------------- tutorial pasted on the page
+# only the working area of the tutorial (not the whole screen) -> follows the script, not too detailed
+SCR_CROP = (458, 58, 446, 396)      # x, y, w, h inside the 986x654 screen recording
+PANEL_W = 740
+PANEL_H = int(PANEL_W * SCR_CROP[3] / SCR_CROP[2]) // 2 * 2
+PANEL_CX, PANEL_CY = 540, 1250       # inside the empty answer box under the question
+TUT_TEXT_Y = 835                     # text sits in the empty space between question and the pasted video
+
+def page_still():
+    cmd = ["ffmpeg", "-v", "quiet", "-ss", f"{PAGE_T}", "-i", os.path.join(RAW, "IMG_1551.MOV"),
+           "-vf", f"scale={W}:{H}:flags=lanczos,{GRADE}", "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
+    return read_frames(cmd, W, H, 1)[0]
+
+def decode_screen(a, b, play_frames):
+    rev = b < a
+    lo, hi = (b, a) if rev else (a, b)
+    speed = (hi - lo) / (play_frames / FPS)
+    x, y, w, h = SCR_CROP
+    vf = f"crop={w}:{h}:{x}:{y},setpts=(PTS-STARTPTS)/{speed:.6f},fps={FPS},scale={PANEL_W}:{PANEL_H}:flags=lanczos," \
+         f"eq=contrast=1.05:saturation=1.0"
+    if rev:
+        vf += ",reverse"
+    cmd = ["ffmpeg", "-v", "quiet", "-ss", f"{lo:.3f}", "-t", f"{hi - lo + 0.1:.3f}", "-i", os.path.join(RAW, "screen.mp4"),
+           "-vf", vf, "-frames:v", str(play_frames), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
+    return read_frames(cmd, PANEL_W, PANEL_H, play_frames)
+
+PANEL_MASK = Image.new("L", (PANEL_W, PANEL_H), 0)
+ImageDraw.Draw(PANEL_MASK).rounded_rectangle([0, 0, PANEL_W - 1, PANEL_H - 1], radius=22, fill=255)
+
+def paste_panel(page_img, arr, t_loc, punch):
+    frame = page_img.copy()
+    s = 1.0
+    if punch:
+        s = 0.80 + 0.20 * ease_pop(min(1.0, t_loc / 0.30))
+    panel = Image.fromarray(arr).convert("RGBA")
+    panel.putalpha(PANEL_MASK)
+    pw, ph = int(PANEL_W * s), int(PANEL_H * s)
+    if s != 1.0:
+        panel = panel.resize((pw, ph), Image.BILINEAR)
+    # soft drop shadow so it sits on the paper like a pasted sticker
+    sh = Image.new("L", (pw + 80, ph + 80), 0)
+    ImageDraw.Draw(sh).rounded_rectangle([40, 52, pw + 40, ph + 52], radius=24, fill=110)
+    sh = sh.filter(ImageFilter.GaussianBlur(16))
+    blk = Image.new("RGBA", sh.size, (0, 0, 0, 255)); blk.putalpha(sh)
+    x0, y0 = int(PANEL_CX - pw / 2), int(PANEL_CY - ph / 2)
+    frame.alpha_composite(blk, (x0 - 40, y0 - 40))
+    frame.alpha_composite(panel, (x0, y0))
+    return frame
+
+def zoom_frame(img, z):
+    if z <= 1.0001:
+        return img
+    cw, ch = W / z, H / z
+    x0, y0 = (W - cw) / 2, (H - ch) / 2
+    return img.resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + cw, y0 + ch))
 
 def compose_footage(arr, t_loc, dur, punch):
     z = 1.0 + 0.045 * (t_loc / max(dur, 0.01))          # slow push-in
     if punch:
         z += 0.07 * max(0.0, 1 - t_loc / 0.22) ** 2      # quick punch on cut
     z = min(z, SRC_SCALE)
-    cw, ch = SW / z * (W / SW) * (SW / W), 0
     cw = W * SRC_SCALE / z
     ch = H * SRC_SCALE / z
     x0 = (SW - cw) / 2
@@ -308,38 +455,51 @@ def compose_footage(arr, t_loc, dur, punch):
     a = np.asarray(im, np.float32) * SHADE
     return Image.fromarray(a.astype(np.uint8)).convert("RGBA")
 
-def compose_screen(arr, t_loc, punch):
-    frame = BG_SCREEN.copy()
-    s = 1.0
-    if punch:
-        u = min(1.0, t_loc / 0.28)
-        s = 0.86 + 0.14 * ease_pop(u)
-    panel = Image.fromarray(arr).convert("RGBA")
-    panel.putalpha(mask)
-    if s != 1.0:
-        panel = panel.resize((int(PANEL_W * s), int(PANEL_H * s)), Image.BILINEAR)
-    frame.alpha_composite(panel, (int(W / 2 - panel.width / 2), int(PANEL_Y + PANEL_H / 2 - panel.height / 2)))
-    return frame
-
 # ---------------------------------------------------------------- render video
 silent = os.path.join(WORK, "video_noaudio.mp4")
 enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
                         "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "17",
                         "-pix_fmt", "yuv420p", silent], stdin=subprocess.PIPE)
-fidx = 0
+PAGE = None
+QR_DEBUG = []
 for (t0, t1, src, a, b, opt) in SEGS:
     f0, f1 = round(t0 * FPS), round(t1 * FPS)
     n = f1 - f0
+    if src == "TUT":
+        if PAGE is None:
+            pg = np.asarray(page_still(), np.float32) * SHADE
+            PAGE = Image.fromarray(pg.astype(np.uint8)).convert("RGBA")
+        frames = []
+        first = True
+        for (c0, c1, sa, sb, play_dur) in opt["clips"]:
+            cn = round(c1 * FPS) - round(c0 * FPS)
+            play = round((play_dur or (c1 - c0)) * FPS)
+            fr = decode_screen(sa, sb, play)
+            fr = fr + [fr[-1]] * (cn - len(fr))
+            frames += [(x, first and k == 0) for k, x in enumerate(fr[:cn])]
+            first = False
+        print(f"{t0:6.2f}-{t1:6.2f} TUT frames={n}/{len(frames)}", flush=True)
+        for i in range(n):
+            arr = frames[min(i, len(frames) - 1)][0]
+            t = (f0 + i) / FPS
+            frame = paste_panel(PAGE, arr, i / FPS, True)
+            frame = zoom_frame(frame, 1.0 + 0.03 * i / n + 0.05 * max(0.0, 1 - i / 6) ** 2)
+            draw_overlays(frame, t)
+            enc.stdin.write(frame.convert("RGB").tobytes())
+        continue
     play = round(opt.get("play_dur", t1 - t0) * FPS)
-    punch = not opt.get("nopunch")
+    frames = decode_footage(src, a, b, play)
+    frames = frames + [frames[-1]] * (n - len(frames))
+    frames = frames[:n]
+    if t0 in QR_KEYS:
+        bx = qr_boxes(t0, n)
+        frames = [hide_boxes(f, b) for f, b in zip(frames, bx)]
     print(f"{t0:6.2f}-{t1:6.2f} {src} [{a}-{b}] frames={n} speed={(b - a) / (play / FPS):.2f}", flush=True)
-    for i, (arr, is_screen) in enumerate(decode(src, a, b, n, play)):
-        t_loc = i / FPS
+    for i, arr in enumerate(frames):
         t = (f0 + i) / FPS
-        frame = compose_screen(arr, t_loc, punch) if is_screen else compose_footage(arr, t_loc, t1 - t0, punch)
+        frame = compose_footage(arr, i / FPS, t1 - t0, not opt.get("nopunch"))
         draw_overlays(frame, t)
         enc.stdin.write(frame.convert("RGB").tobytes())
-        fidx += 1
 enc.stdin.close()
 enc.wait()
 
