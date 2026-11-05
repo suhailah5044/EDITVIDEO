@@ -1,0 +1,5 @@
+source/
+out/captions-overlay.mov
+out/*.silent.mp4
+out/render.log
+out/*.new.mp4

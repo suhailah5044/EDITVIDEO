@@ -1,7 +1,7 @@
 """Generate the HyperFrames composition (index.html) + SFX track for the
 "Menolak Algebra / Kuasai Algebra" reel.
 
-Run:  python3 build.py   -> writes index.html, assets/sfx.wav, captions.json
+Run:  python3 build.py   -> writes index.html, captions.json, edl.json
 """
 import json, math, wave, struct, random, html
 from pathlib import Path
@@ -118,44 +118,6 @@ for i, c in enumerate(caps):
     cap_html.append(f'<div class="cap" id="c{i}">{" ".join(spans)}</div>')
 kick_html = "".join(f'<div class="kick" id="k{g}">{html.escape(t)}</div>' for g, (_, t) in enumerate(GROUPS))
 
-# ---- SFX: one bright "ting" each time a caption enters, a fuller "pop-ting" when the box re-opens
-SR = 48000
-buf = [0.0] * int(SR * (TOTAL + 1))
-def add(sig, t0, gain):
-    o = int(t0 * SR)
-    for k, v in enumerate(sig):
-        if 0 <= o + k < len(buf):
-            buf[o + k] += v * gain
-def ting(f, dur=0.5):
-    out = []
-    for k in range(int(dur * SR)):
-        t = k / SR
-        a = 1 - math.exp(-t * 2500)
-        out.append(a * (math.sin(2*math.pi*f*t) * math.exp(-t*8)
-                        + 0.4 * math.sin(2*math.pi*f*2.76*t) * math.exp(-t*15)
-                        + 0.18 * math.sin(2*math.pi*f*5.4*t) * math.exp(-t*26)))
-    return out
-def pop(f0=520):
-    out, ph = [], 0.0
-    for k in range(int(0.12 * SR)):
-        t = k / SR
-        ph += 2*math.pi*f0*(1.8 - 0.8*min(1, t/0.05))/SR
-        out.append(math.sin(ph) * (1 - math.exp(-t*900)) * math.exp(-t*35))
-    return out
-T1, T2, P = ting(1760), ting(2093), pop()
-gstarts = {round(gs, 2) for gs, _ in GROUPS}
-for i, c in enumerate(caps):
-    t0 = max(0, c["s"] - 0.01)
-    if any(abs(c["s"] - gs) < 0.15 for gs in gstarts):
-        add(P, t0, 0.35); add(T2, t0 + 0.02, 0.16)
-    else:
-        add(T1 if i % 2 else T2, t0, 0.13)
-peak = max(abs(v) for v in buf) or 1
-sc = 0.9 / peak if peak > 0.9 else 1.0
-with wave.open(str(ROOT / "assets/sfx.wav"), "w") as wf:
-    wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(SR)
-    wf.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, v * sc)) * 32767)) for v in buf[: int(SR * TOTAL)]))
-
 DATA = json.dumps({"slides": slide_js,
                    "groups": [g for g, _ in GROUPS],
                    "caps": [{"s": c["s"], "e": c["e"], "g": group_of(c["s"]), "w": [w["s"] for w in c["w"]], "emo": bool(c["emo"])} for c in caps]})
@@ -196,7 +158,6 @@ html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }
 <div id="main" data-composition-id="main" data-width="{W}" data-height="{H}" data-start="0" data-duration="{TOTAL}">
   {''.join(slides_html)}
   <div id="box">{kick_html}<div class="lines">{''.join(cap_html)}</div></div>
-  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="{TOTAL}" data-track-index="41"></audio>
   <audio id="vo" src="assets/vo.m4a" data-start="0" data-duration="{VO_DUR}" data-track-index="40"></audio>
 </div>
 <script>
@@ -249,4 +210,17 @@ html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }
 </html>
 """
 (ROOT / "index.html").write_text(page)
+
+# ---- edit decision list: original camera files, in-points and crops (used by render.js)
+SOURCES = {  # slide id -> (source file, in-point seconds, crop on the rotated 2160x3840 frame or None)
+    "s1": ("IMG_1591.MOV", 1.0, "1620:2880:270:420"),   # zoomed so the floor is not visible
+    "s2": ("IMG_1590.HEIC", 0.0, None),
+    "s3": ("IMG_1593.MOV", 0.5, None), "s4": ("IMG_1592.MOV", 0.3, None),
+    "s5": ("IMG_1594.MOV", 0.0, None), "s6": ("IMG_1596.MOV", 0.5, None),
+    "s7": ("IMG_1599.MOV", 0.3, None), "s8": ("IMG_1548.MOV", 0.3, None),
+    "s9": ("IMG_1597.MOV", 1.6, None),
+}
+json.dump({"total": TOTAL, "tr": TR, "boundaries": B,
+           "clips": [{"id": sid, "src": SOURCES[sid][0], "in": SOURCES[sid][1], "crop": SOURCES[sid][2]} for sid, *_ in SLIDES]},
+          open(ROOT / "edl.json", "w"), indent=1)
 print("captions:", len(caps), "slides:", len(SLIDES))
