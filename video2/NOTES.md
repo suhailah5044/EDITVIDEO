@@ -12,9 +12,8 @@ RAW: Google Drive `Buku transisi ke dua.mov`
 - Belum final render. **Hantar gambar/preview dulu & minta izin sebelum render.**
 
 ## Keputusan yang dah approve
-- Background: gelap, huruf/nombor pudar besar (A B C 1 2 3, ا ب ت, + × −), penuh,
-  sedikit kabur, drift sangat perlahan (BUKAN goyang). Ikut gaya video sebelum ni
-  (screenshot: latar gelap + jalur cahaya serong + simbol pudar). Fail: `background/index.html`.
+- Background: kereta ASAL. Huruf/nombor pudar (A B C 1 2 3, ا ب ت, + ×) HANYA di atas & tepi,
+  di belakang subjek, drift sangat perlahan. Fail: `glyphtop/index.html` (versi latar gelap penuh `background/` DITOLAK).
 - Caption: putih + kuning (#FFD60A), Inter Black, saiz sederhana, band atas (top 330–370px).
   Tiada kotak kuning, tiada anak panah. Cip 4M kekal dalam kotak + bunyi "ting".
 - SFX: swipe, boop, xylo, ting, chime (`scripts/sfx2.py`). Muzik `scripts/audio_gen.py`,
