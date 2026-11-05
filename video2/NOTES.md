@@ -9,6 +9,12 @@ RAW: Google Drive `Buku transisi ke dua.mov`
 - Sedang proses: mask background frame demi frame → composite → render preview 2.
 - Belum final render. **Hantar gambar/preview dulu & minta izin sebelum render.**
 
+## Kemas kini (preview 2 → final)
+- User TOLAK buang latar penuh (kabur/lutsinar). Sekarang: video asal (`graded.mp4`) penuh,
+  latar huruf (`assets/glyph_bg.mp4`) hanya band atas, gelap sikit, pudar ke bawah (mask 430→760px).
+- Langkah mask/composite (3–4) TIDAK digunakan lagi.
+- Final render (delivery) diluluskan user → `video2_final.mp4`.
+
 ## Keputusan yang dah approve
 - Background: gelap, huruf/nombor pudar besar (A B C 1 2 3, ا ب ت, + × −), penuh,
   sedikit kabur, drift sangat perlahan (BUKAN goyang). Ikut gaya video sebelum ni
