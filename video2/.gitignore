@@ -4,3 +4,4 @@ node_modules/
 masks/
 raw/
 background/*.mp4
+*.log
