@@ -2,3 +2,5 @@ assets/*.mp4
 .hyperframes/
 node_modules/
 masks/
+raw/
+background/*.mp4
