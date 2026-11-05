@@ -34,7 +34,7 @@ SEGS = [
         (7.64, 9.90, 80.0, 108.0, None),        # samakan penyebut, darab 3t -> 12st, 9t
         (9.90, 12.80, 108.0, 142.0, None),      # teruskan langkah -> 9t - 4 - 3t
         (12.80, 14.10, 162.0, 168.8, 0.55),     # jawapan paling ringkas -> (6t - 4)/12st
-    ]}),
+    ], "panel_out": 13.02}),
     (14.10, 15.02, "IMG_1542.MOV", 0.00, 0.92, {"qr": True}),        # nampak susah kan
     (15.02, 17.50, "IMG_1547.MOV", 0.00, 2.48, {"qr": True}),        # pecahan algebra
     (17.50, 19.70, "IMG_1552.MOV", 2.20, 4.40, {"qr": True}),        # stuck / keliru
@@ -62,17 +62,17 @@ GROUPS = [
     (0.60, 1.78, 960, [[T(0.60, "Set Latihan "), T(0.95, "2", YELLOW)]]),
     (2.70, 7.58, 1150, [[T(2.70, "Permudahkan")],
                         [FR(3.40, "3", "4s", YELLOW, 54), T(4.62, "  \u2212  ", YELLOW, 56), FR(4.76, "4 + 3t", "12st", YELLOW, 54)]]),
-    (8.18, 9.86, 835, [[T(8.18, "Samakan penyebut", WHITE, 54), T(9.14, "  darab 3t", YELLOW, 54)]]),
-    (10.98, 12.76, 835, [[T(10.98, "Teruskan pengiraan", WHITE, 54)]]),
-    (13.00, 14.06, 835, [[T(13.00, "Jawapan paling ringkas", WHITE, 54)]]),
-    (13.20, 14.06, 1705, [[FR(13.20, "6t \u2212 4", "12st", YELLOW, 50)]]),
+    (8.18, 9.86, 800, [[T(8.18, "Samakan penyebut", WHITE, 54), T(9.14, "  darab 3t", YELLOW, 54)]]),
+    (10.98, 12.76, 800, [[T(10.98, "Teruskan pengiraan", WHITE, 54)]]),
+    (13.02, 14.06, 1290, [[T(13.02, "Jawapan paling ringkas", WHITE, 64)],
+                          [FR(13.22, "6t \u2212 4", "12st", YELLOW, 128)]]),
     (14.12, 14.98, 1000, [[T(14.12, "Nampak "), T(14.44, "susah", YELLOW), T(14.80, " kan?")]]),
     (15.40, 17.12, 250, [[T(15.40, "Pecahan Algebra", YELLOW)]]),
     (17.22, 19.62, 300, [[T(17.22, "Selalu "), T(17.40, "stuck?", YELLOW)]]),
     (23.12, 26.30, 300, [[T(23.12, "Nota ringkas", WHITE, 54), T(23.58, "  \u2022  Contoh", WHITE, 54),
                           T(24.24, "  \u2022  Latihan", YELLOW, 54)]]),
     (27.12, 28.78, 950, [[T(27.12, "Scan QR", YELLOW)], [T(28.14, "Video tutorial", WHITE, 54)]]),
-    (29.82, 30.88, 835, [[T(29.82, "Boleh ulang tengok", WHITE, 54)]]),
+    (29.82, 30.88, 800, [[T(29.82, "Boleh ulang tengok", WHITE, 54)]]),
     (31.16, 32.90, 300, [[T(31.16, "Sesuai untuk", WHITE, 54)], [T(31.52, "Form 1 \u2013 Form 5", YELLOW)]]),
     (33.40, 35.10, 250, [[T(33.40, "Nak anak "), T(33.86, "lebih faham?", YELLOW)]]),
     (35.18, TOTAL, 250, [[T(35.18, "Check "), T(35.34, "beg kuning", YELLOW), T(35.60, " sekarang!")]]),
@@ -93,7 +93,7 @@ def render_text(s, color, size):
     w, h = bb[2] - bb[0] + 2 * pad, int(size * 1.35) + 2 * pad
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.text((pad - bb[0], pad), s, font=f, fill=color + (255,), stroke_width=3, stroke_fill=(15, 15, 15, 255))
+    d.text((pad - bb[0], pad), s, font=f, fill=color + (255,), stroke_width=max(3, size // 17), stroke_fill=(15, 15, 15, 255))
     return img
 
 def math_text(d, x, y, s, f, color):
@@ -101,7 +101,7 @@ def math_text(d, x, y, s, f, color):
     cx = x
     for ch in s:
         ff = f[1] if ch.isalpha() else f[0]
-        d.text((cx, y), ch, font=ff, fill=color + (255,), stroke_width=3, stroke_fill=(15, 15, 15, 255))
+        d.text((cx, y), ch, font=ff, fill=color + (255,), stroke_width=max(3, f[0].size // 17), stroke_fill=(15, 15, 15, 255))
         cx += ff.getlength(ch)
     return cx - x
 
@@ -389,10 +389,53 @@ def hide_boxes(fr, boxes):
 # ---------------------------------------------------------------- tutorial pasted on the page
 # only the working area of the tutorial (not the whole screen) -> follows the script, not too detailed
 SCR_CROP = (458, 58, 446, 396)      # x, y, w, h inside the 986x654 screen recording
-PANEL_W = 740
+PANEL_W = 900
 PANEL_H = int(PANEL_W * SCR_CROP[3] / SCR_CROP[2]) // 2 * 2
-PANEL_CX, PANEL_CY = 540, 1250       # inside the empty answer box under the question
+PANEL_CX, PANEL_CY = 540, 1300       # inside the empty answer box under the question
 TUT_TEXT_Y = 835                     # text sits in the empty space between question and the pasted video
+
+PAGE_POLY = [(0, 272), (1036, 288), (1079, 439), (1079, 1567), (1015, 1919), (0, 1919)]
+PAGE_MASK = Image.new("L", (W, H), 0)
+ImageDraw.Draw(PAGE_MASK).polygon(PAGE_POLY, fill=255)
+PAGE_MASK = PAGE_MASK.filter(ImageFilter.GaussianBlur(2))
+
+def math_bg(extra=260):
+    """near-black background with scattered + - x / = symbols (taller than the frame so it can drift)."""
+    rng = random.Random(11)
+    h = H + extra
+    yy = np.linspace(0, 1, h)[:, None]; xx = np.linspace(-1, 1, W)[None, :]
+    r = np.sqrt(xx ** 2 * 0.5 + ((yy - 0.3) * 1.6) ** 2)
+    k = np.clip(r, 0, 1)[..., None]
+    arr = np.array([20, 22, 30], np.float32) * (1 - k) + np.array([4, 5, 8], np.float32) * k
+    img = Image.fromarray(np.repeat(arr, W, axis=1).astype(np.uint8) if arr.shape[1] == 1 else arr.astype(np.uint8)).convert("RGBA")
+    syms = ["+", "\u2212", "\u00d7", "\u00f7", "=", "+", "\u00f7", "\u00d7", "x\u00b2", "\u221a", "%"]
+    layer = Image.new("RGBA", (W, h), (0, 0, 0, 0))
+    placed = []
+    tries = 0
+    while len(placed) < 60 and tries < 6000:
+        tries += 1
+        x, y = rng.randint(10, W - 60), rng.randint(10, h - 60)
+        if any((x - px) ** 2 + (y - py) ** 2 < 120 ** 2 for px, py in placed):
+            continue
+        placed.append((x, y))
+        sym = rng.choice(syms)
+        sz = rng.randint(44, 96)
+        col = (255, 212, 0, rng.randint(55, 95)) if rng.random() < 0.3 else (255, 255, 255, rng.randint(35, 70))
+        tile = Image.new("RGBA", (240, 240), (0, 0, 0, 0))
+        ImageDraw.Draw(tile).text((50, 30), sym, font=font(F_BOLD, sz), fill=col)
+        tile = tile.rotate(rng.uniform(-25, 25), resample=Image.BICUBIC)
+        layer.alpha_composite(tile, (x - 50, y - 60))
+    img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(0.8)))
+    return img
+
+MATH_BG = math_bg()
+
+def page_with_bg(page, t):
+    off = int((t * 40) % 250)
+    bg = MATH_BG.crop((0, off, W, off + H))
+    out = bg.copy()
+    out.paste(page, (0, 0), PAGE_MASK)
+    return out
 
 def page_still():
     cmd = ["ffmpeg", "-v", "quiet", "-ss", f"{PAGE_T}", "-i", os.path.join(RAW, "IMG_1551.MOV"),
@@ -415,24 +458,52 @@ def decode_screen(a, b, play_frames):
 PANEL_MASK = Image.new("L", (PANEL_W, PANEL_H), 0)
 ImageDraw.Draw(PANEL_MASK).rounded_rectangle([0, 0, PANEL_W - 1, PANEL_H - 1], radius=22, fill=255)
 
-def paste_panel(page_img, arr, t_loc, punch):
+def ease_back(u, k=3.2):
+    u = min(max(u, 0.0), 1.0)
+    v = u - 1
+    return 1 + (k + 1) * v ** 3 + k * v ** 2
+
+def paste_panel(page_img, arr, t_loc, t_out=None):
+    """t_loc: time since panel entered; t_out: seconds until panel exits (None = stays)."""
     frame = page_img.copy()
-    s = 1.0
-    if punch:
-        s = 0.80 + 0.20 * ease_pop(min(1.0, t_loc / 0.30))
+    u = t_loc / 0.32
+    s = 0.15 + 0.85 * ease_back(u)
+    rot = -7.0 * max(0.0, 1 - u) ** 2
+    alpha = min(1.0, t_loc / 0.06)
+    if t_out is not None and t_out < 0.20:
+        v = max(0.0, t_out / 0.20)
+        s *= 0.35 + 0.65 * v
+        alpha *= v
+    if alpha <= 0.01:
+        return frame
     panel = Image.fromarray(arr).convert("RGBA")
     panel.putalpha(PANEL_MASK)
-    pw, ph = int(PANEL_W * s), int(PANEL_H * s)
-    if s != 1.0:
-        panel = panel.resize((pw, ph), Image.BILINEAR)
-    # soft drop shadow so it sits on the paper like a pasted sticker
-    sh = Image.new("L", (pw + 80, ph + 80), 0)
-    ImageDraw.Draw(sh).rounded_rectangle([40, 52, pw + 40, ph + 52], radius=24, fill=110)
-    sh = sh.filter(ImageFilter.GaussianBlur(16))
+    # thin white border like a pasted card
+    card = Image.new("RGBA", (PANEL_W + 16, PANEL_H + 16), (0, 0, 0, 0))
+    ImageDraw.Draw(card).rounded_rectangle([0, 0, PANEL_W + 15, PANEL_H + 15], radius=30, fill=(255, 255, 255, 255))
+    card.alpha_composite(panel, (8, 8))
+    pw, ph = max(2, int(card.width * s)), max(2, int(card.height * s))
+    card = card.resize((pw, ph), Image.BILINEAR)
+    if abs(rot) > 0.05:
+        card = card.rotate(rot, resample=Image.BICUBIC, expand=True)
+    if alpha < 1:
+        a_ = np.asarray(card.getchannel("A"), np.float32) * alpha
+        card.putalpha(Image.fromarray(a_.astype(np.uint8)))
+    sh = Image.new("L", (card.width + 120, card.height + 120), 0)
+    ImageDraw.Draw(sh).rounded_rectangle([60, 78, card.width + 60, card.height + 78], radius=30, fill=int(150 * alpha))
+    sh = sh.filter(ImageFilter.GaussianBlur(24))
     blk = Image.new("RGBA", sh.size, (0, 0, 0, 255)); blk.putalpha(sh)
-    x0, y0 = int(PANEL_CX - pw / 2), int(PANEL_CY - ph / 2)
-    frame.alpha_composite(blk, (x0 - 40, y0 - 40))
-    frame.alpha_composite(panel, (x0, y0))
+    x0, y0 = int(PANEL_CX - card.width / 2), int(PANEL_CY - card.height / 2)
+    frame.alpha_composite(blk, (x0 - 60, y0 - 60))
+    # impact flash ring just after the pop lands
+    if 0.12 < t_loc < 0.45:
+        k = (t_loc - 0.12) / 0.33
+        ring = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        rr = int(max(pw, ph) * (0.55 + 0.35 * k))
+        ImageDraw.Draw(ring).rounded_rectangle([PANEL_CX - rr, PANEL_CY - rr * ph // pw, PANEL_CX + rr, PANEL_CY + rr * ph // pw],
+                                               radius=40, outline=(255, 230, 120, int(200 * (1 - k))), width=10)
+        frame.alpha_composite(ring.filter(ImageFilter.GaussianBlur(3)))
+    frame.alpha_composite(card, (x0, y0))
     return frame
 
 def zoom_frame(img, z):
@@ -479,11 +550,16 @@ for (t0, t1, src, a, b, opt) in SEGS:
             frames += [(x, first and k == 0) for k, x in enumerate(fr[:cn])]
             first = False
         print(f"{t0:6.2f}-{t1:6.2f} TUT frames={n}/{len(frames)}", flush=True)
+        t_exit = opt.get("panel_out")
         for i in range(n):
             arr = frames[min(i, len(frames) - 1)][0]
             t = (f0 + i) / FPS
-            frame = paste_panel(PAGE, arr, i / FPS, True)
-            frame = zoom_frame(frame, 1.0 + 0.03 * i / n + 0.05 * max(0.0, 1 - i / 6) ** 2)
+            frame = paste_panel(page_with_bg(PAGE, t), arr, i / FPS, None if t_exit is None else t_exit - t)
+            z = 1.0 + 0.03 * i / n
+            # little camera shake when the panel lands
+            if 7 <= i <= 12:
+                z += 0.012 * (1 if i % 2 else -1)
+            frame = zoom_frame(frame, z)
             draw_overlays(frame, t)
             enc.stdin.write(frame.convert("RGB").tobytes())
         continue
@@ -516,11 +592,52 @@ def pop_sound():
     s[: int(SR * 0.002)] *= np.linspace(0, 1, int(SR * 0.002))
     return (s / np.max(np.abs(s))).astype(np.float32)
 
+def whoosh_sound(d=0.38):
+    rng = np.random.default_rng(3)
+    n = int(SR * d)
+    noise = rng.normal(0, 1, n).astype(np.float32)
+    t = np.arange(n) / SR
+    out = np.zeros(n, np.float32)
+    # sweep a simple resonant band-pass from low to high
+    f = 300 + 3200 * (t / d) ** 1.5
+    y1 = y2 = 0.0
+    for i in range(n):
+        w0 = 2 * np.pi * f[i] / SR
+        alpha = np.sin(w0) / (2 * 2.5)
+        b0, a0, a1, a2 = alpha, 1 + alpha, -2 * np.cos(w0), 1 - alpha
+        x = noise[i]
+        y = (b0 * x - b0 * (noise[i - 2] if i > 1 else 0) - a1 * y1 - a2 * y2) / a0
+        y2, y1 = y1, y
+        out[i] = y
+    env = np.sin(np.pi * np.clip(t / d, 0, 1)) ** 1.6
+    out *= env
+    return (out / np.max(np.abs(out))).astype(np.float32)
+
+def impact_sound(d=0.55):
+    t = np.arange(int(SR * d)) / SR
+    f = 48 + 110 * np.exp(-t * 18)
+    boom = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 7)
+    hit = np.random.default_rng(5).normal(0, 1, t.size) * np.exp(-t * 60) * 0.5
+    s_ = boom + hit
+    return (s_ / np.max(np.abs(s_))).astype(np.float32)
+
 pop = pop_sound()
-track = np.zeros(int(SR * (TOTAL + 0.5)), np.float32)
+whoosh = whoosh_sound()
+impact = impact_sound()
+track = np.zeros(int(SR * (TOTAL + 1.0)), np.float32)
+def put(snd, t, g):
+    i = max(0, int(t * SR))
+    track[i:i + snd.size] += snd[: max(0, track.size - i)] * g
 for pt in POPS:
-    i = int((pt - 0.01) * SR)
-    track[i:i + pop.size] += pop * 0.30
+    put(pop, pt - 0.01, 0.42)
+CUTS = [sg[0] for sg in SEGS[1:]]
+for c in CUTS:
+    put(whoosh, c - 0.24, 0.20)
+for sg in SEGS:
+    if sg[2] == "TUT":
+        put(impact, sg[0] + 0.20, 0.45)        # panel lands
+    if sg[2] == "TUT" and sg[5].get("panel_out"):
+        put(impact, sg[5]["panel_out"] + 0.18, 0.40)   # big answer lands
 sfx = os.path.join(WORK, "sfx.wav")
 pcm = (np.clip(track, -1, 1) * 32767).astype(np.int16)
 import wave
@@ -534,6 +651,6 @@ subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", silent, "-i", os.path.join(
                 "[2:a]aresample=48000,volume=0.9[fx];"
                 "[vo][fx]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.95,"
                 f"atrim=0:{TOTAL},afade=t=out:st={TOTAL - 0.25}:d=0.25[a]",
-                "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+                "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
                 "-movflags", "+faststart", "-shortest", OUT], check=True)
 print("done", OUT, "pops:", len(POPS))
