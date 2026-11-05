@@ -68,7 +68,7 @@ def layout(toks):
     space = F_MAIN.getlength(" ")
     lines, cur, cw = [], [], 0
     for w, h in toks:
-        ww = F_MAIN.getlength(w) + (18 if h else 0)
+        ww = F_MAIN.getlength(w)
         add = ww + (space if cur else 0)
         if cur and cw + add > MAX_W - 80:
             lines.append((cur, cw)); cur, cw = [], 0; add = ww
@@ -101,20 +101,14 @@ def build_card(card):
     if card.get("label"):
         d.text((sh + cw / 2, y + label_h / 2), card["label"], font=F_LABEL, fill=YELLOW, anchor="mm",
                stroke_width=4, stroke_fill=INK)
-        y += label_h + 4
+        y += label_h + 10
     chip_boxes = []
     if lines:
         for words, lw_ in lines:
             x = sh + (cw - lw_) / 2
             for i, (w, h, ww) in enumerate(words):
-                if h:
-                    nxt = i + 1 < len(words) and words[i + 1][1]
-                    d.rounded_rectangle((x, y + 6, x + ww + (space + 12 if nxt else 0), y + lh - 4), 10, fill=YELLOW)
-                if h:
-                    d.text((x + 9, y + lh / 2 + 1), w, font=F_MAIN, fill=INK, anchor="lm")
-                else:
-                    d.text((x, y + lh / 2 + 1), w, font=F_MAIN, fill=WHITE, anchor="lm",
-                           stroke_width=4, stroke_fill=INK)
+                d.text((x, y + lh / 2 + 1), w, font=F_MAIN, fill=YELLOW if h else WHITE, anchor="lm",
+                       stroke_width=4, stroke_fill=INK)
                 x += ww + space
             y += lh
     else:
@@ -122,20 +116,12 @@ def build_card(card):
         for (c, _), w_ in zip(card["chips"], chip_w):
             chip_boxes.append((int(x), int(y), int(x + w_), int(y + body_h), c))
             x += w_ + 18
-    # soft drop shadow so text reads on any background (no box)
-    shadow = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    shadow.putalpha(img.getchannel("A").point(lambda v: int(v * 0.55)))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(8))
-    out = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    out.alpha_composite(shadow, (0, 4))
-    out.alpha_composite(img)
-    return out, chip_boxes
+    return img, chip_boxes
 
 def chip_img(text, w, h):
     im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, w - 1, h - 1), h // 2, fill=YELLOW)
-    d.text((w / 2, h / 2 + 1), text, font=F_CHIP, fill=INK, anchor="mm")
+    d.text((w / 2, h / 2 + 1), text, font=F_CHIP, fill=YELLOW, anchor="mm", stroke_width=4, stroke_fill=INK)
     return im
 
 def arrow_img():
