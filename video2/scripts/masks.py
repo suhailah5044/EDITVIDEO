@@ -7,7 +7,7 @@ p=subprocess.Popen(["ffmpeg","-v","error","-i",src,"-f","rawvideo","-pix_fmt","r
 ONLY=sys.argv[3]
 sess={ONLY:new_session({"bi":"birefnet-general-lite","is":"isnet-general-use"}[ONLY])}
 def model(t):
-    if t<8.833 or t>=24.5: return "bi"
+    if t<8.833 or t>=14.1: return "bi"
     return "is"
 def skip(t): return (12.70<t<14.15) or (17.09<t<17.28)
 i=0; t0=time.time()

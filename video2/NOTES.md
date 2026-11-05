@@ -5,8 +5,10 @@ RAW: Google Drive `Buku transisi ke dua.mov`
 
 ## Status
 - Preview 1 (latar kereta asal) dihantar → user minta tukar.
-- Mockup v4 (`mockup_v4_approved.jpg`) → **user ALLOW**.
-- Sedang proses: mask background frame demi frame → composite → render preview 2.
+- Mockup v4 (latar gelap penuh) → user tukar fikiran.
+- **Mockup v5 (`mockup_v5_approved.jpg`) → user ALLOW**: background kereta ASAL kekal; huruf ABC / alif ba ta
+  pudar HANYA di bahagian atas & tepi (`glyphtop/index.html`), di belakang subjek (guna mask), tak tutup muka/buku/caption.
+- Preview 2 dihantar (draft, -14 LUFS). Tunggu review user.
 - Belum final render. **Hantar gambar/preview dulu & minta izin sebelum render.**
 
 ## Keputusan yang dah approve
@@ -22,8 +24,8 @@ RAW: Google Drive `Buku transisi ke dua.mov`
 
 ## Pipeline (bina semula)
 1. Muat turun RAW → `ffmpeg -vf "eq=brightness=0.025:contrast=1.06:saturation=1.08:gamma=1.04,colorbalance=rm=0.02:bm=-0.02,unsharp=5:5:0.45,vignette=PI/5"` → `assets/graded.mp4`
-2. `cd background && npx hyperframes render -q delivery -o glyph_bg.mp4` (29.1s)
+2. `cd glyphtop && npx hyperframes render -q delivery -o glyph_top.mp4` (29.1s, latar hitam; screen-blend)
 3. Mask (rembg): `python3 scripts/masks.py graded.mp4 masks is` lalu `... masks bi`
-   (birefnet-general-lite untuk close-up 0–8.83s & 24.5s+, isnet untuk lain). Jalankan satu model satu masa (OOM jika dua).
-4. `python3 scripts/composite.py graded.mp4 glyph_bg.mp4 masks assets/composited.mp4`
-5. `npx hyperframes check` → snapshot → `npx hyperframes render -q draft` (preview).
+   (birefnet-general-lite untuk semua kecuali 8.83–14.1s = isnet). Jalankan satu model satu masa (OOM jika dua).
+4. `python3 scripts/comp_final.py graded.mp4 glyph_top.mp4 masks assets/composited.mp4`
+5. `npx hyperframes check` → snapshot → `npx hyperframes render -q draft` (preview), lalu ffmpeg `loudnorm=I=-14`.

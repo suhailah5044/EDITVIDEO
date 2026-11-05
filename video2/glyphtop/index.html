@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ms" data-resolution="portrait">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=1080, height=1920" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
+#scene{position:absolute;inset:0;background:#000}
+#streak{position:absolute;left:520px;top:-200px;width:260px;height:1500px;transform:rotate(-38deg);
+  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(230,235,240,.16) 45%,rgba(255,255,255,.28) 50%,rgba(230,235,240,.12) 56%,rgba(255,255,255,0) 100%);filter:blur(18px)}
+.g{position:absolute;font-family:"Inter","DejaVu Sans",sans-serif;font-weight:900;line-height:1;filter:blur(3px)}
+</style></head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="29.1" data-width="1080" data-height="1920">
+  <div id="scene" class="clip" data-start="0" data-duration="29.1" data-track-index="0"></div>
+</div>
+<script>
+// glyph, x, y, size, rotation, yellow?
+const G=[["A",40,70,180,-8,0],["ب",280,110,160,0,1],["1",520,60,170,6,0],["+",740,120,130,0,1],["C",920,50,170,8,0],
+["2",20,330,150,-6,1],["ت",950,320,150,0,0],["3",40,560,150,-10,0],["×",960,580,130,0,1]];
+const sc=document.getElementById("scene"), els=[];
+G.forEach(([c,x,y,s,r,yl],i)=>{const d=document.createElement("div");d.className="g";d.textContent=c;
+ d.style.left=x+"px";d.style.top=y+"px";d.style.fontSize=s+"px";
+ d.style.color=yl?"rgba(255,214,10,.55)":"rgba(255,255,255,.42)";
+ d.style.transform=`rotate(${r}deg)`;sc.appendChild(d);els.push([d,r,i]);});
+const tl=gsap.timeline({paused:true});
+els.forEach(([d,r,i])=>{ // very gentle slow float
+  const dx=((i*29)%21-10)*1.6, dy=((i*17)%21-10)*2.2;
+  tl.fromTo(d,{x:0,y:0,rotation:r},{x:dx,y:dy,rotation:r+((i%2)?3:-3),duration:29.1,ease:"sine.inOut"},0);
+});
+window.__timelines=window.__timelines||{}; window.__timelines["main"]=tl;
+</script>
+</body></html>
