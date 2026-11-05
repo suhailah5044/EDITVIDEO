@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ms" style="overflow:hidden;margin:0">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Kuasai Algebra – Menolak Algebra</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@hyperframes/core/dist/hyperframe.runtime.iife.js"></script>
+<style>
+@font-face { font-family:"Jakarta"; font-weight:200 800; font-style:normal; font-display:block; src:url(assets/jakarta.woff2) format("woff2"); }
+:root {
+  --bg0:#12060b; --bg1:#3a0f17; --maroon:#9b2d24; --gold:#f6c33b; --plum:#3b1a5c;
+  --ink:#ffffff; --font:"Jakarta","Noto Color Emoji",system-ui,sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:1080px; height:1920px; overflow:hidden; background:var(--bg0); }
+#main { position:relative; width:1080px; height:1920px; overflow:hidden; font-family:var(--font); }
+
+/* ---------- background ---------- */
+.bg { position:absolute; inset:0; overflow:hidden;
+  background: radial-gradient(120% 80% at 50% 0%, #4a1420 0%, rgba(74,20,32,0) 60%),
+              radial-gradient(90% 60% at 50% 100%, #2a0f3a 0%, rgba(42,15,58,0) 70%),
+              linear-gradient(180deg, #1c0810 0%, var(--bg0) 55%, #0c0612 100%); }
+.blob { position:absolute; border-radius:50%; filter:blur(110px); opacity:.55; will-change:transform; }
+#blobA { width:760px; height:760px; left:-260px; top:-160px; background:radial-gradient(circle, #c23a2c 0%, rgba(194,58,44,0) 70%); }
+#blobB { width:700px; height:700px; right:-280px; top:620px; background:radial-gradient(circle, #f6b52e 0%, rgba(246,181,46,0) 70%); opacity:.38; }
+#blobC { width:900px; height:900px; left:-200px; bottom:-420px; background:radial-gradient(circle, #6b2fa8 0%, rgba(107,47,168,0) 70%); opacity:.45; }
+.sym { position:absolute; color:#fff; opacity:.06; font-weight:800; line-height:1; will-change:transform; }
+.rays { position:absolute; inset:-20%; opacity:.06;
+  background: repeating-conic-gradient(from 0deg at 50% 0%, rgba(255,214,120,.0) 0deg 8deg, rgba(255,214,120,.55) 9deg 10deg, rgba(255,214,120,0) 11deg 20deg); }
+.grain { position:absolute; inset:0; pointer-events:none; opacity:.16; mix-blend-mode:overlay;
+  background-image: radial-gradient(rgba(255,255,255,.10) 1px, transparent 1.2px), radial-gradient(rgba(0,0,0,.25) 1px, transparent 1.2px);
+  background-size:3px 3px,5px 5px; background-position:0 0,1px 2px; }
+.vignette { position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%); }
+
+/* ---------- slides ---------- */
+.slide { position:absolute; left:0; top:0; width:1080px; height:1920px; }
+.card { position:absolute; left:80px; top:190px; width:920px; height:1290px; border-radius:44px; overflow:hidden;
+  background:#1a0d12; transform-origin:50% 60%;
+  box-shadow: 0 50px 120px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.10), 0 0 90px rgba(246,195,59,.12); }
+.media { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; will-change:transform; }
+.sheen { position:absolute; inset:0; pointer-events:none;
+  background: linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 18%, rgba(0,0,0,0) 80%, rgba(0,0,0,.22) 100%); }
+
+/* ---------- captions (white, no box) ---------- */
+#captions { position:absolute; left:60px; right:60px; top:1530px; height:220px; }
+.cap { position:absolute; left:0; right:0; top:0; text-align:center; visibility:hidden;
+  font-weight:800; font-size:64px; line-height:1.18; letter-spacing:-.01em; color:var(--ink);
+  text-shadow: 0 4px 18px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.45); }
+.w { display:inline-block; }
+.w.k { font-weight:800; }
+.emo { font-size:58px; margin-left:4px; text-shadow:none; }
+</style>
+</head>
+<body>
+<div id="main" data-composition-id="main" data-width="1080" data-height="1920" data-start="0" data-duration="27.6">
+  <div class="bg" id="bg">
+    <div class="rays" id="rays"></div>
+    <div class="blob" id="blobA"></div><div class="blob" id="blobB"></div><div class="blob" id="blobC"></div>
+    <div class="sym" id="sym0" style="left:449px;top:1035px;font-size:120px;transform:rotate(-2deg)">+</div><div class="sym" id="sym1" style="left:883px;top:325px;font-size:150px;transform:rotate(-1deg)">−</div><div class="sym" id="sym2" style="left:623px;top:317px;font-size:120px;transform:rotate(-10deg)">×</div><div class="sym" id="sym3" style="left:58px;top:1515px;font-size:54px;transform:rotate(5deg)">÷</div><div class="sym" id="sym4" style="left:388px;top:830px;font-size:150px;transform:rotate(8deg)">=</div><div class="sym" id="sym5" style="left:633px;top:1557px;font-size:54px;transform:rotate(-22deg)">a⁄b</div><div class="sym" id="sym6" style="left:165px;top:425px;font-size:54px;transform:rotate(14deg)">x²</div><div class="sym" id="sym7" style="left:312px;top:1095px;font-size:70px;transform:rotate(1deg)">½</div><div class="sym" id="sym8" style="left:652px;top:920px;font-size:54px;transform:rotate(-2deg)">√</div><div class="sym" id="sym9" style="left:260px;top:1875px;font-size:54px;transform:rotate(10deg)">∑</div><div class="sym" id="sym10" style="left:300px;top:401px;font-size:90px;transform:rotate(-24deg)">c⁄d</div><div class="sym" id="sym11" style="left:568px;top:167px;font-size:54px;transform:rotate(17deg)">%</div><div class="sym" id="sym12" style="left:377px;top:1799px;font-size:54px;transform:rotate(-14deg)">y</div><div class="sym" id="sym13" style="left:961px;top:60px;font-size:120px;transform:rotate(24deg)">π</div><div class="sym" id="sym14" style="left:389px;top:100px;font-size:70px;transform:rotate(14deg)">+</div><div class="sym" id="sym15" style="left:251px;top:127px;font-size:90px;transform:rotate(-24deg)">−</div><div class="sym" id="sym16" style="left:403px;top:1732px;font-size:70px;transform:rotate(-13deg)">×</div><div class="sym" id="sym17" style="left:69px;top:75px;font-size:120px;transform:rotate(-16deg)">÷</div><div class="sym" id="sym18" style="left:564px;top:819px;font-size:70px;transform:rotate(24deg)">=</div><div class="sym" id="sym19" style="left:791px;top:765px;font-size:120px;transform:rotate(-19deg)">a⁄b</div><div class="sym" id="sym20" style="left:414px;top:369px;font-size:90px;transform:rotate(18deg)">x²</div><div class="sym" id="sym21" style="left:1013px;top:1098px;font-size:54px;transform:rotate(-14deg)">½</div>
+    <div class="vignette"></div>
+  </div>
+  <div class="slide clip" id="s1" data-start="0.000" data-duration="2.7" data-track-index="1"><div class="card"><video id="s1-m" class="media clip" src="assets/s1.mp4" muted playsinline preload="auto" data-start="0.000" data-duration="2.7" data-track-index="20" style="object-position:50% 45%"></video><div class="sheen"></div></div></div><div class="slide clip" id="s2" data-start="2.100" data-duration="4.53" data-track-index="2" style="visibility:hidden"><div class="card"><img id="s2-m" class="media" src="assets/s2.jpg" style="object-position:50% 50%" alt=""><div class="sheen"></div></div></div><div class="slide clip" id="s3" data-start="6.030" data-duration="4.75" data-track-index="1" style="visibility:hidden"><div class="card"><video id="s3-m" class="media clip" src="assets/s3.mp4" muted playsinline preload="auto" data-start="6.030" data-duration="4.75" data-track-index="22" style="object-position:50% 40%"></video><div class="sheen"></div></div></div><div class="slide clip" id="s4" data-start="10.180" data-duration="3.7" data-track-index="2" style="visibility:hidden"><div class="card"><video id="s4-m" class="media clip" src="assets/s4.mp4" muted playsinline preload="auto" data-start="10.180" data-duration="3.7" data-track-index="23" style="object-position:50% 42%"></video><div class="sheen"></div></div></div><div class="slide clip" id="s5" data-start="13.280" data-duration="3.7" data-track-index="1" style="visibility:hidden"><div class="card"><video id="s5-m" class="media clip" src="assets/s5.mp4" muted playsinline preload="auto" data-start="13.280" data-duration="3.7" data-track-index="24" style="object-position:50% 45%"></video><div class="sheen"></div></div></div><div class="slide clip" id="s6" data-start="16.380" data-duration="3.17" data-track-index="2" style="visibility:hidden"><div class="card"><video id="s6-m" class="media clip" src="assets/s6.mp4" muted playsinline preload="auto" data-start="16.380" data-duration="3.17" data-track-index="25" style="object-position:50% 50%"></video><div class="sheen"></div></div></div><div class="slide clip" id="s7" data-start="18.950" data-duration="2.21" data-track-index="1" style="visibility:hidden"><div class="card"><video id="s7-m" class="media clip" src="assets/s7.mp4" muted playsinline preload="auto" data-start="18.950" data-duration="2.21" data-track-index="26" style="object-position:50% 45%"></video><div class="sheen"></div></div></div><div class="slide clip" id="s8" data-start="20.560" data-duration="2.1" data-track-index="2" style="visibility:hidden"><div class="card"><video id="s8-m" class="media clip" src="assets/s8.mp4" muted playsinline preload="auto" data-start="20.560" data-duration="2.1" data-track-index="27" style="object-position:50% 40%"></video><div class="sheen"></div></div></div><div class="slide clip" id="s9" data-start="22.060" data-duration="5.54" data-track-index="1" style="visibility:hidden"><div class="card"><video id="s9-m" class="media clip" src="assets/s9.mp4" muted playsinline preload="auto" data-start="22.060" data-duration="5.54" data-track-index="28" style="object-position:50% 45%"></video><div class="sheen"></div></div></div>
+  <div id="captions"><div class="cap" id="c0"><span class="w" id="c0w0">Okey</span> <span class="w" id="c0w1">kali</span> <span class="w" id="c0w2">ni</span></div><div class="cap" id="c1"><span class="w" id="c1w0">kita</span> <span class="w" id="c1w1">masuk</span> <span class="w" id="c1w2">topik</span></div><div class="cap" id="c2"><span class="w k" id="c2w0">menolak</span> <span class="w" id="c2w1">algebra</span> <span class="w emo" id="c2e">🧮</span></div><div class="cap" id="c3"><span class="w" id="c3w0">Dalam</span> <span class="w" id="c3w1">pecahan</span> <span class="w" id="c3w2">algebra</span></div><div class="cap" id="c4"><span class="w" id="c4w0">bukan</span> <span class="w" id="c4w1">setakat</span> <span class="w k" id="c4w2">tambah</span> <span class="w emo" id="c4e">🤔</span></div><div class="cap" id="c5"><span class="w" id="c5w0">kita</span> <span class="w" id="c5w1">kena</span> <span class="w" id="c5w2">tahu</span> <span class="w" id="c5w3">juga</span></div><div class="cap" id="c6"><span class="w" id="c6w0">cara</span> <span class="w k" id="c6w1">tolak</span></div><div class="cap" id="c7"><span class="w" id="c7w0">pecahan</span> <span class="w" id="c7w1">dengan</span> <span class="w k" id="c7w2">betul</span> <span class="w emo" id="c7e">✅</span></div><div class="cap" id="c8"><span class="w" id="c8w0">Contoh</span> <span class="w" id="c8w1">dalam</span> <span class="w" id="c8w2">buku</span> <span class="w" id="c8w3">ni</span> <span class="w emo" id="c8e">📖</span></div><div class="cap" id="c9"><span class="w" id="c9w0">mula-mula</span> <span class="w" id="c9w1">kena</span></div><div class="cap" id="c10"><span class="w k" id="c10w0">samakan</span> <span class="w k" id="c10w1">penyebut</span></div><div class="cap" id="c11"><span class="w" id="c11w0">kemudian</span> <span class="w" id="c11w1">ikut</span> <span class="w" id="c11w2">langkah</span></div><div class="cap" id="c12"><span class="w" id="c12w0">penyelesaian</span> <span class="w" id="c12w1">sampai</span></div><div class="cap" id="c13"><span class="w" id="c13w0">dapat</span> <span class="w k" id="c13w1">jawapan</span> <span class="w emo" id="c13e">🎯</span></div><div class="cap" id="c14"><span class="w" id="c14w0">Nampak</span> <span class="w" id="c14w1">macam</span></div><div class="cap" id="c15"><span class="w" id="c15w0">banyak</span> <span class="w k" id="c15w1">step</span> <span class="w" id="c15w2">kan</span> <span class="w emo" id="c15e">😵</span></div><div class="cap" id="c16"><span class="w" id="c16w0">tapi</span> <span class="w" id="c16w1">bila</span> <span class="w" id="c16w2">dah</span></div><div class="cap" id="c17"><span class="w k" id="c17w0">faham</span> <span class="w" id="c17w1">tekniknya</span></div><div class="cap" id="c18"><span class="w" id="c18w0">lebih</span> <span class="w k" id="c18w1">mudah</span> <span class="w" id="c18w2">nak</span> <span class="w" id="c18w3">buat</span> <span class="w emo" id="c18e">😍</span></div><div class="cap" id="c19"><span class="w" id="c19w0">Sebab</span> <span class="w" id="c19w1">tu</span> <span class="w" id="c19w2">buku</span></div><div class="cap" id="c20"><span class="w k" id="c20w0">Kuasai</span> <span class="w k" id="c20w1">Algebra</span> <span class="w" id="c20w2">ni</span></div><div class="cap" id="c21"><span class="w k" id="c21w0">berbaloi</span> <span class="w emo" id="c21e">💯</span></div><div class="cap" id="c22"><span class="w" id="c22w0">untuk</span> <span class="w" id="c22w1">anak</span> <span class="w" id="c22w2">korang</span> <span class="w" id="c22w3">tau</span></div><div class="cap" id="c23"><span class="w" id="c23w0">Bukan</span> <span class="w" id="c23w1">satu</span> <span class="w" id="c23w2">topik</span> <span class="w" id="c23w3">je</span></div><div class="cap" id="c24"><span class="w" id="c24w0">ada</span> <span class="w" id="c24w1">juga</span> <span class="w" id="c24w2">asas</span> <span class="w" id="c24w3">algebra</span></div><div class="cap" id="c25"><span class="w k" id="c25w0">operasi</span> <span class="w k" id="c25w1">kembangan</span></div><div class="cap" id="c26"><span class="w k" id="c26w0">pemfaktoran</span> <span class="w" id="c26w1">dan</span> <span class="w" id="c26w2">juga</span></div><div class="cap" id="c27"><span class="w k" id="c27w0">persamaan</span> <span class="w k" id="c27w1">linear</span></div><div class="cap" id="c28"><span class="w" id="c28w0">Dengan</span> <span class="w" id="c28w1">latihan</span> <span class="w" id="c28w2">dan</span></div><div class="cap" id="c29"><span class="w" id="c29w0">juga</span> <span class="w k" id="c29w1">video</span> <span class="w k" id="c29w2">tutorial</span> <span class="w emo" id="c29e">🎥</span></div><div class="cap" id="c30"><span class="w" id="c30w0">Kalau</span> <span class="w" id="c30w1">anak</span> <span class="w" id="c30w2">korang</span> <span class="w" id="c30w3">selalu</span></div><div class="cap" id="c31"><span class="w k" id="c31w0">struggle</span> <span class="w" id="c31w1">dengan</span> <span class="w k" id="c31w2">Math</span> <span class="w" id="c31w3">ni</span> <span class="w emo" id="c31e">😩</span></div><div class="cap" id="c32"><span class="w" id="c32w0">boleh</span> <span class="w k" id="c32w1">grab</span></div><div class="cap" id="c33"><span class="w" id="c33w0">buku</span> <span class="w k" id="c33w1">Kuasai</span> <span class="w k" id="c33w2">Algebra</span></div><div class="cap" id="c34"><span class="w" id="c34w0">dekat</span> <span class="w" id="c34w1">beg</span> <span class="w k" id="c34w2">kuning</span> <span class="w" id="c34w3">saya</span> <span class="w emo" id="c34e">🛒</span></div></div>
+  <div class="grain"></div>
+  <audio id="vo" src="assets/vo.m4a" data-start="0" data-duration="27.35" data-track-index="40"></audio>
+  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="27.6" data-track-index="41" data-volume="1"></audio>
+</div>
+<script>
+(function(){
+  var D = {"slides": [{"id": "s1", "s": 0, "e": 2.7, "b": 0, "b2": 2.4}, {"id": "s2", "s": 2.1, "e": 6.63, "b": 2.4, "b2": 6.33}, {"id": "s3", "s": 6.03, "e": 10.78, "b": 6.33, "b2": 10.48}, {"id": "s4", "s": 10.18, "e": 13.88, "b": 10.48, "b2": 13.58}, {"id": "s5", "s": 13.28, "e": 16.98, "b": 13.58, "b2": 16.68}, {"id": "s6", "s": 16.38, "e": 19.55, "b": 16.68, "b2": 19.25}, {"id": "s7", "s": 18.95, "e": 21.16, "b": 19.25, "b2": 20.86}, {"id": "s8", "s": 20.56, "e": 22.66, "b": 20.86, "b2": 22.36}, {"id": "s9", "s": 22.06, "e": 27.6, "b": 22.36, "b2": 27.6}], "caps": [{"s": 0.0, "e": 0.54, "w": [0.0, 0.22, 0.36], "emo": false}, {"s": 0.54, "e": 1.32, "w": [0.54, 0.64, 0.86], "emo": false}, {"s": 1.32, "e": 2.46, "w": [1.32, 1.92], "emo": true}, {"s": 2.46, "e": 3.6, "w": [2.46, 2.78, 3.06], "emo": false}, {"s": 3.6, "e": 4.36, "w": [3.6, 3.76, 4.0], "emo": true}, {"s": 4.36, "e": 4.88, "w": [4.36, 4.48, 4.64, 4.72], "emo": false}, {"s": 4.88, "e": 5.46, "w": [4.88, 5.02], "emo": false}, {"s": 5.46, "e": 6.36, "w": [5.46, 5.78, 6.06], "emo": true}, {"s": 6.36, "e": 7.06, "w": [6.36, 6.54, 6.64, 6.86], "emo": true}, {"s": 7.06, "e": 7.66, "w": [7.06, 7.5], "emo": false}, {"s": 7.66, "e": 8.4, "w": [7.66, 7.94], "emo": false}, {"s": 8.4, "e": 9.26, "w": [8.4, 8.72, 8.92], "emo": false}, {"s": 9.26, "e": 9.88, "w": [9.26, 9.72], "emo": false}, {"s": 9.88, "e": 10.54, "w": [9.88, 10.04], "emo": true}, {"s": 10.54, "e": 10.88, "w": [10.54, 10.78], "emo": false}, {"s": 10.88, "e": 11.52, "w": [10.88, 11.08, 11.32], "emo": true}, {"s": 11.52, "e": 12.06, "w": [11.52, 11.72, 11.96], "emo": false}, {"s": 12.06, "e": 12.84, "w": [12.06, 12.38], "emo": false}, {"s": 12.84, "e": 13.62, "w": [12.84, 13.0, 13.34, 13.4], "emo": true}, {"s": 13.62, "e": 14.22, "w": [13.62, 13.84, 13.92], "emo": false}, {"s": 14.22, "e": 15.2, "w": [14.22, 14.58, 15.02], "emo": false}, {"s": 15.2, "e": 15.76, "w": [15.2], "emo": true}, {"s": 15.76, "e": 16.74, "w": [15.76, 15.9, 16.1, 16.48], "emo": false}, {"s": 16.74, "e": 17.38, "w": [16.74, 16.8, 16.92, 17.24], "emo": false}, {"s": 17.38, "e": 18.32, "w": [17.38, 17.46, 17.58, 17.88], "emo": false}, {"s": 18.32, "e": 19.34, "w": [18.32, 18.76], "emo": false}, {"s": 19.34, "e": 20.16, "w": [19.34, 19.94, 20.02], "emo": false}, {"s": 20.16, "e": 20.9, "w": [20.16, 20.64], "emo": false}, {"s": 20.9, "e": 21.42, "w": [20.9, 21.04, 21.26], "emo": false}, {"s": 21.42, "e": 22.4, "w": [21.42, 21.58, 21.88], "emo": true}, {"s": 22.4, "e": 23.24, "w": [22.4, 22.54, 22.7, 22.96], "emo": false}, {"s": 23.24, "e": 24.42, "w": [23.24, 23.48, 23.88, 24.14], "emo": true}, {"s": 24.42, "e": 25.2, "w": [24.42, 24.74], "emo": false}, {"s": 25.2, "e": 26.36, "w": [25.2, 25.52, 25.96], "emo": false}, {"s": 26.36, "e": 27.55, "w": [26.36, 26.58, 26.66, 26.88], "emo": true}]};
+  var T = 27.6, TR = 0.6;
+  window.__timelines = window.__timelines || {};
+  var tl = gsap.timeline({ paused:true });
+
+  // ---- living background (finite tweens spanning the whole video)
+  tl.fromTo("#blobA", {x:0,y:0,scale:1}, {x:260,y:380,scale:1.25,duration:T,ease:"sine.inOut"}, 0);
+  tl.fromTo("#blobB", {x:0,y:0}, {x:-320,y:-420,duration:T,ease:"sine.inOut"}, 0);
+  tl.fromTo("#blobC", {x:0,scale:1}, {x:300,scale:1.2,duration:T,ease:"sine.inOut"}, 0);
+  tl.fromTo("#rays", {rotation:-6}, {rotation:6,duration:T,ease:"none"}, 0);
+  for (var i=0;i<22;i++) {
+    var dir = (i%2?1:-1);
+    tl.to("#sym"+i, { y: -140 - (i%5)*40, x: dir*(30+(i%3)*25), rotation: "+="+(dir*25), duration:T, ease:"none" }, 0);
+  }
+
+  // ---- slides: smooth swipe between pages
+  D.slides.forEach(function(s, i){
+    var card = "#"+s.id+" .card", m = "#"+s.id+"-m", last = i===D.slides.length-1;
+    if (i>0) {
+      tl.set("#"+s.id, {autoAlpha:1}, s.s);
+      tl.fromTo(card, {x:1150, rotation:7, scale:.92}, {x:0, rotation:0, scale:1, duration:TR, ease:"power3.inOut"}, s.s);
+    } else {
+      tl.from(card, {y:120, scale:.9, autoAlpha:0, duration:.7, ease:"power3.out"}, 0);
+    }
+    // slow push-in on the media + gentle float of the card (mid-scene life)
+    tl.fromTo(m, {scale:1.04}, {scale:1.14, duration:s.e-s.s, ease:"none"}, s.s);
+    var floatStart = s.s + (i>0?TR:0.7), floatEnd = last ? T : s.e - TR;
+    if (floatEnd - floatStart > 0.4) tl.to(card, {y:-10, duration:(floatEnd-floatStart)/2, yoyo:true, repeat:1, ease:"sine.inOut"}, floatStart);
+    if (!last) {
+      tl.to(card, {x:-1150, rotation:-7, scale:.92, duration:TR, ease:"power3.inOut"}, s.e-TR);
+      tl.set("#"+s.id, {autoAlpha:0}, s.e);
+    } else {
+      // CTA: little heartbeat on the cover
+      tl.to(card, {scale:1.035, duration:.35, yoyo:true, repeat:3, ease:"sine.inOut"}, 24.9);
+    }
+  });
+
+  // ---- captions: word-by-word pop, white, no box
+  D.caps.forEach(function(c, i){
+    var id = "#c"+i;
+    tl.set(id, {autoAlpha:1}, c.s);
+    c.w.forEach(function(ws, j){
+      tl.from(id+"w"+j, {y:26, scale:.82, autoAlpha:0, duration:.26, ease:"back.out(2.2)"}, ws);
+    });
+    if (c.emo) {
+      var lastW = c.w[c.w.length-1];
+      tl.from(id+"e", {scale:0, rotation:-30, autoAlpha:0, duration:.35, ease:"back.out(3)"}, lastW + .12);
+      tl.to(id+"e", {rotation:10, duration:.25, yoyo:true, repeat:1, ease:"sine.inOut"}, lastW + .5);
+    }
+    tl.to(id, {autoAlpha:0, y:-14, duration:.12, ease:"power1.in"}, c.e - .12);
+    tl.set(id, {y:0}, c.e);
+  });
+
+  tl.to({}, {duration:.01}, T - .01); // pin the duration
+  window.__timelines["main"] = tl;
+})();
+</script>
+</body>
+</html>
