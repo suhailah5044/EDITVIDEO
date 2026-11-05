@@ -18,7 +18,7 @@ B = [0, 2.40, 6.33, 10.48, 13.58, 16.68, 19.25, 20.86, 22.36, TOTAL]
 SLIDES = [
     # id, media, kind, object-position
     ("s1", "assets/s1.mp4", "video", "50% 62%"),   # Menolak algebra page overview
-    ("s2", "assets/s2.jpg", "image", "50% 50%"),   # Menambah algebra page (still photo)
+    ("s2", "assets/s2.mp4", "video", "50% 50%"),   # menolak + menambah pages (video, no still photo)
     ("s3", "assets/s3.mp4", "video", "50% 55%"),   # pointer on menolak steps
     ("s4", "assets/s4.mp4", "video", "50% 55%"),   # steps close-up
     ("s5", "assets/s5.mp4", "video", "50% 45%"),   # flipping pages
@@ -214,7 +214,7 @@ html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }
 # ---- edit decision list: original camera files, in-points and crops (used by render.js)
 SOURCES = {  # slide id -> (source file, in-point seconds, crop on the rotated 2160x3840 frame or None)
     "s1": ("IMG_1591.MOV", 1.0, "1620:2880:270:420"),   # zoomed so the floor is not visible
-    "s2": ("IMG_1590.HEIC", 0.0, None),
+    "s2": ("IMG_1591.MOV", 5.5, "1620:2880:270:420"),
     "s3": ("IMG_1593.MOV", 0.5, None), "s4": ("IMG_1592.MOV", 0.3, None),
     "s5": ("IMG_1594.MOV", 0.0, None), "s6": ("IMG_1596.MOV", 0.5, None),
     "s7": ("IMG_1599.MOV", 0.3, None), "s8": ("IMG_1548.MOV", 0.3, None),
