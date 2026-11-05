@@ -1,7 +1,7 @@
 """Generate the HyperFrames composition (index.html) + SFX track for the
 "Menolak Algebra / Kuasai Algebra" reel.
 
-Run:  python3 build.py   -> writes index.html, captions.json
+Run:  python3 build.py   -> writes index.html, assets/sfx.wav, captions.json
 """
 import json, math, wave, struct, random, html
 from pathlib import Path
@@ -98,21 +98,67 @@ for i, (sid, src, kind, pos) in enumerate(SLIDES):
         f'<div class="frame">{media}</div></div>')
     slide_js.append({"id": sid, "s": round(s, 3), "e": round(e, 3)})
 
+# ---- reference style: dark rounded box, thin yellow border, small yellow kicker + white text
+GROUPS = [  # (start, kicker) - one kicker per sentence of the voice-over
+    (0.00, "TOPIK HARI NI"), (2.46, "PECAHAN ALGEBRA"), (6.36, "CONTOH DALAM BUKU"), (10.54, "TIPS"),
+    (13.62, "KUASAI ALGEBRA"), (16.74, "APA ADA DALAM BUKU"), (20.90, "BONUS"), (22.40, "JOM DAPATKAN"),
+]
+def group_of(t):
+    g = 0
+    for k, (gs, _) in enumerate(GROUPS):
+        if t >= gs - 0.01:
+            g = k
+    return g
+
 cap_html = []
 for i, c in enumerate(caps):
     spans = [f'<span class="w" id="c{i}w{j}">{html.escape(w["t"])}</span>' for j, w in enumerate(c["w"])]
     if c["emo"]:
         spans.append(f'<span class="w emo" id="c{i}e">{c["emo"]}</span>')
     cap_html.append(f'<div class="cap" id="c{i}">{" ".join(spans)}</div>')
+kick_html = "".join(f'<div class="kick" id="k{g}">{html.escape(t)}</div>' for g, (_, t) in enumerate(GROUPS))
 
-# faint algebra symbols in the black band (like the reference)
-SYM = [("×", 90, 70, 46), ("( )", 470, 40, 40), ("x²", 900, 60, 48), ("+", 160, 230, 44), ("5x", 610, 170, 40),
-       ("=", 760, 280, 46), ("÷", 60, 420, 44), ("−", 980, 400, 50), ("a⁄b", 330, 520, 40), ("y", 860, 520, 44),
-       ("√", 250, 120, 42), ("½", 690, 470, 40), ("π", 990, 200, 40), ("%", 420, 300, 36)]
-deco = "".join(f'<div class="sym" id="sym{i}" style="left:{x}px;top:{y}px;font-size:{z}px">{html.escape(t)}</div>'
-               for i, (t, x, y, z) in enumerate(SYM))
+# ---- SFX: one bright "ting" each time a caption enters, a fuller "pop-ting" when the box re-opens
+SR = 48000
+buf = [0.0] * int(SR * (TOTAL + 1))
+def add(sig, t0, gain):
+    o = int(t0 * SR)
+    for k, v in enumerate(sig):
+        if 0 <= o + k < len(buf):
+            buf[o + k] += v * gain
+def ting(f, dur=0.5):
+    out = []
+    for k in range(int(dur * SR)):
+        t = k / SR
+        a = 1 - math.exp(-t * 2500)
+        out.append(a * (math.sin(2*math.pi*f*t) * math.exp(-t*8)
+                        + 0.4 * math.sin(2*math.pi*f*2.76*t) * math.exp(-t*15)
+                        + 0.18 * math.sin(2*math.pi*f*5.4*t) * math.exp(-t*26)))
+    return out
+def pop(f0=520):
+    out, ph = [], 0.0
+    for k in range(int(0.12 * SR)):
+        t = k / SR
+        ph += 2*math.pi*f0*(1.8 - 0.8*min(1, t/0.05))/SR
+        out.append(math.sin(ph) * (1 - math.exp(-t*900)) * math.exp(-t*35))
+    return out
+T1, T2, P = ting(1760), ting(2093), pop()
+gstarts = {round(gs, 2) for gs, _ in GROUPS}
+for i, c in enumerate(caps):
+    t0 = max(0, c["s"] - 0.01)
+    if any(abs(c["s"] - gs) < 0.15 for gs in gstarts):
+        add(P, t0, 0.35); add(T2, t0 + 0.02, 0.16)
+    else:
+        add(T1 if i % 2 else T2, t0, 0.13)
+peak = max(abs(v) for v in buf) or 1
+sc = 0.9 / peak if peak > 0.9 else 1.0
+with wave.open(str(ROOT / "assets/sfx.wav"), "w") as wf:
+    wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(SR)
+    wf.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, v * sc)) * 32767)) for v in buf[: int(SR * TOTAL)]))
 
-DATA = json.dumps({"slides": slide_js, "caps": [{"s": c["s"], "e": c["e"], "w": [w["s"] for w in c["w"]], "emo": bool(c["emo"])} for c in caps]})
+DATA = json.dumps({"slides": slide_js,
+                   "groups": [g for g, _ in GROUPS],
+                   "caps": [{"s": c["s"], "e": c["e"], "g": group_of(c["s"]), "w": [w["s"] for w in c["w"]], "emo": bool(c["emo"])} for c in caps]})
 
 page = f"""<!doctype html>
 <html lang="ms" style="overflow:hidden;margin:0">
@@ -129,31 +175,28 @@ page = f"""<!doctype html>
 html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }}
 #main {{ position:relative; width:{W}px; height:{H}px; overflow:hidden; font-family:var(--font); background:var(--bg); }}
 
-/* black band + algebra symbols */
-.band {{ position:absolute; left:0; top:0; width:{W}px; height:{VID_TOP + 140}px;
-  background:radial-gradient(90% 70% at 50% 35%, #1b1b1d 0%, #0b0b0c 70%); }}
-.sym {{ position:absolute; color:#fff; opacity:.13; font-weight:800; line-height:1; will-change:transform; }}
-
 /* original footage, full width, no filters */
 .slide {{ position:absolute; left:0; top:{VID_TOP}px; width:{W}px; height:{VID_H}px; }}
 .frame {{ position:absolute; inset:0; overflow:hidden; }}
 .media {{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }}
-.fade {{ position:absolute; left:0; top:{VID_TOP - 2}px; width:{W}px; height:170px; pointer-events:none;
-  background:linear-gradient(180deg, var(--bg) 0%, rgba(11,11,12,.55) 45%, rgba(11,11,12,0) 100%); }}
-
-/* captions: neat, upright, white, no box, top band */
-#captions {{ position:absolute; left:70px; right:70px; top:150px; height:120px; }}
-.cap {{ position:absolute; left:0; right:0; top:0; text-align:center; visibility:hidden;
-  font-weight:800; font-size:54px; line-height:1.22; letter-spacing:.035em; color:var(--ink);
-  text-shadow:0 2px 3px rgba(0,0,0,.75), 0 0 12px rgba(0,0,0,.45), 0 4px 22px rgba(0,0,0,.5); }}
+/* caption box - reference style, kept small */
+#box {{ position:absolute; left:50%; top:120px; width:820px; margin-left:-410px; padding:14px 26px 18px;
+  border-radius:24px; border:3px solid #f5c21b; background:rgba(12,12,12,.74);
+  box-shadow:0 10px 30px rgba(0,0,0,.35); text-align:center; transform-origin:50% 0; visibility:hidden; }}
+.kick {{ position:absolute; left:0; right:0; top:14px; font-weight:800; font-size:22px; letter-spacing:.16em;
+  color:#f5c21b; visibility:hidden; }}
+.lines {{ position:relative; height:62px; margin-top:30px; }}
+.cap {{ position:absolute; left:0; right:0; top:0; visibility:hidden; white-space:nowrap;
+  font-weight:800; font-size:46px; line-height:62px; letter-spacing:.02em; color:#fff; }}
 .w {{ display:inline-block; }}
-.emo {{ font-size:50px; margin-left:6px; text-shadow:none; }}
+.emo {{ font-size:42px; margin-left:4px; }}
 </style>
 </head>
 <body>
 <div id="main" data-composition-id="main" data-width="{W}" data-height="{H}" data-start="0" data-duration="{TOTAL}">
   {''.join(slides_html)}
-  <div id="captions">{''.join(cap_html)}</div>
+  <div id="box">{kick_html}<div class="lines">{''.join(cap_html)}</div></div>
+  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="{TOTAL}" data-track-index="41"></audio>
   <audio id="vo" src="assets/vo.m4a" data-start="0" data-duration="{VO_DUR}" data-track-index="40"></audio>
 </div>
 <script>
@@ -176,18 +219,26 @@ html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }
     }}
   }});
 
-  // captions: word-by-word pop
+  // caption box: pops in for each sentence (new kicker), captions change inside it
+  tl.set("#box", {{autoAlpha:1}}, D.groups[0]);
+  D.groups.forEach(function(gs, g){{
+    var end = g+1 < D.groups.length ? D.groups[g+1] : T;
+    tl.set("#k"+g, {{autoAlpha:1}}, gs);
+    tl.fromTo("#box", {{scale:.86, y:-10}}, {{scale:1, y:0, duration:.35, ease:"back.out(2.2)"}}, gs);
+    tl.from("#k"+g, {{y:-8, autoAlpha:0, duration:.25, ease:"power2.out"}}, gs + .05);
+    if (g+1 < D.groups.length) tl.set("#k"+g, {{autoAlpha:0}}, end);
+  }});
   D.caps.forEach(function(c, i){{
     var id = "#c"+i;
     tl.set(id, {{autoAlpha:1}}, c.s);
     c.w.forEach(function(ws, j){{
-      tl.from(id+"w"+j, {{y:18, scale:.85, autoAlpha:0, duration:.22, ease:"back.out(2.4)"}}, ws);
+      tl.from(id+"w"+j, {{y:14, autoAlpha:0, duration:.2, ease:"back.out(2)"}}, ws);
     }});
     if (c.emo) {{
       var lw = c.w[c.w.length-1];
-      tl.from(id+"e", {{scale:0, autoAlpha:0, duration:.3, ease:"back.out(3)"}}, lw + .12);
+      tl.from(id+"e", {{scale:0, autoAlpha:0, duration:.28, ease:"back.out(3)"}}, lw + .12);
     }}
-    tl.to(id, {{autoAlpha:0, duration:.12, ease:"power1.in"}}, c.e - .12);
+    tl.set(id, {{autoAlpha:0}}, c.e);
   }});
 
   tl.to({{}}, {{duration:.01}}, T - .01);

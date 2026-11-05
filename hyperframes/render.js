@@ -48,10 +48,10 @@ const DIR = __dirname;
   await new Promise(r => ff.on('close', r));
   await browser.close();
 
-  // mux the voice-over only
+  // mix voice-over + caption SFX and mux
   await new Promise((res, rej) => {
-    const m = spawn('ffmpeg', ['-v', 'error', '-y', '-i', silent, '-i', path.join(DIR, 'assets/vo.m4a'),
-      '-filter_complex', '[1:a]aresample=48000,apad[a]',
+    const m = spawn('ffmpeg', ['-v', 'error', '-y', '-i', silent, '-i', path.join(DIR, 'assets/vo.m4a'), '-i', path.join(DIR, 'assets/sfx.wav'),
+      '-filter_complex', '[1:a]aresample=48000[vo];[2:a]aresample=48000[fx];[vo][fx]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95[a]',
       '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-t', String(total), '-movflags', '+faststart', OUT], { stdio: 'inherit' });
     m.on('close', c => c ? rej(c) : res());
   });
