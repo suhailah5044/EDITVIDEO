@@ -1,0 +1,19 @@
+{
+ "name": "Video 2A - Produk (hook dari belakang)",
+ "segments": [
+  {"a":19.00,"b":20.62,"zoom":"1.12+0.08*exp(-5*t)","ax":1.0},
+  {"a":20.94,"b":21.82,"zoom":"1.05","ax":1.0},
+  {"a":0.05,"b":3.08,"zoom":"1.00+0.012*t","ax":0.0},
+  {"a":3.17,"b":4.27,"zoom":"1.08","ax":0.0},
+  {"a":4.33,"b":6.07,"zoom":"1.00+0.01*t","ax":0.0},
+  {"a":6.33,"b":8.00,"zoom":"1.07","ax":0.0},
+  {"a":21.92,"b":23.33,"zoom":"1.04+0.03*exp(-5*t)","ax":1.0},
+  {"a":23.52,"b":24.40,"zoom":"1.12","ax":1.0}
+ ],
+ "cards": [
+  {"type":"card","l1":"Anak bakal masuk","l2":"TAHUN 1","pop":{"text":"2027?","t":21.0},"tin":19.00,"thl":20.04},
+  {"type":"card","l1":"Buku latihan untuk","l2":"ANAK 6 TAHUN","tin":0.05,"thl":1.62},
+  {"type":"list","badge":"5 SUBJEK","chips":["Bahasa Melayu","English","Matematik","Alam &amp; Manusia","Bahasa Arab"],"tin":3.70,"chipT":[4.44,5.02,5.48,6.36,7.48]},
+  {"type":"cta","l1":"Dapatkan sekarang di","l2":"BEG KUNING","tin":22.08,"thl":22.6}
+ ]
+}

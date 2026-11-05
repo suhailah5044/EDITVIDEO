@@ -11,8 +11,11 @@ Style rujukan untuk semua video seterusnya. Contoh siap: `video2/preview_video2.
 | `video2/tools/build_base.py` | Potong jeda, punch-in zoom, colour grade, proses suara |
 | `video2/tools/make_audio.py` | Muzik lo-fi + sound effects (whoosh, pop, ding) |
 | `video2/tools/render_overlay.js` | Render komposisi kepada frame PNG lutsinar (Playwright) |
+| `video2/composition/template.html` | Template komposisi berasaskan config (untuk builder) |
+| `video2/tools/build_video.py` | **Builder satu arahan**: spec JSON → video siap (potong, zoom, grade, text, muzik, SFX) |
+| `specs/*.json` | Spec contoh: `video2a.json` (hook dari belakang), `video2b.json` (hook dari tengah) |
 
-Untuk video baru: guna semula fail ni. Tukar text, timing dan kedudukan zoom ikut RAW baru.
+Untuk video baru: tulis spec JSON (segmen RAW + kad text, masa ikut RAW) dan jalankan `build_video.py`. Atau guna semula fail ni. Tukar text, timing dan kedudukan zoom ikut RAW baru.
 
 ## 1. Background ABC
 

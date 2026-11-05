@@ -1,0 +1,26 @@
+{
+ "name": "Video 2B - Kenal pasti (hook dari tengah)",
+ "seed": 11,
+ "segments": [
+  {"a":7.98,"b":9.63,"zoom":"1.12+0.08*exp(-5*t)","ax":0.3},
+  {"a":9.86,"b":13.58,"zoom":"1.00+0.01*t","ax":0.5},
+  {"a":13.78,"b":15.18,"zoom":"1.10","ax":0.5},
+  {"a":15.18,"b":18.62,"zoom":"1.00+0.008*t","ax":0.5},
+  {"a":0.05,"b":3.08,"zoom":"1.06+0.06*exp(-5*t)","ax":0.0},
+  {"a":3.17,"b":4.27,"zoom":"1.00","ax":0.0},
+  {"a":18.88,"b":20.62,"zoom":"1.07","ax":1.0},
+  {"a":20.94,"b":21.82,"zoom":"1.00","ax":1.0},
+  {"a":21.92,"b":23.33,"zoom":"1.04+0.03*exp(-5*t)","ax":1.0},
+  {"a":23.52,"b":24.40,"zoom":"1.12","ax":1.0}
+ ],
+ "cards": [
+  {"type":"card","l1":"Tahap pembelajaran anak","l2":"BERBEZA","tin":7.98,"thl":9.38},
+  {"type":"card","l1":"Kenal pasti apa anak","l2":"DAH KUASAI","tin":9.90,"thl":12.88},
+  {"type":"card","l1":"&amp; apa yang","l2":"BELUM MANTAP","tin":13.78,"thl":14.42},
+  {"type":"card","l1":"Fokus bantu bahagian","l2":"YANG ANAK PERLUKAN","tin":15.18,"thl":17.30},
+  {"type":"card","l1":"Buku latihan untuk","l2":"ANAK 6 TAHUN","tin":0.05,"thl":1.62},
+  {"type":"list","badge":"5 SUBJEK","chips":["Bahasa Melayu","English","Matematik","Alam &amp; Manusia","Bahasa Arab"],"tin":3.20,"chipT":[3.50,3.62,3.74,3.86,3.98]},
+  {"type":"card","l1":"Bakal masuk","l2":"TAHUN 1","pop":{"text":"2027?","t":21.0},"tin":18.88,"thl":20.04},
+  {"type":"cta","l1":"Dapatkan sekarang di","l2":"BEG KUNING","tin":22.08,"thl":22.6}
+ ]
+}
