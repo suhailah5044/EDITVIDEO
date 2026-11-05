@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Video 2 Overlay</title>
+<style>
+@font-face{font-family:M;font-weight:700;src:url(m0.ttf)}
+@font-face{font-family:M;font-weight:800;src:url(m1.ttf)}
+@font-face{font-family:M;font-weight:900;src:url(m2.ttf)}
+:root{--y:#FFD21F;--w:#FFFFFF;--ink:#141414}
+html,body{margin:0;width:1080px;height:1920px;background:transparent;overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;font-family:M,sans-serif}
+.card{position:absolute;left:0;right:0;top:230px;text-align:center;opacity:0}
+.l1{font-weight:800;font-size:46px;color:var(--w);letter-spacing:.5px;
+  text-shadow:0 3px 14px rgba(0,0,0,.55),0 1px 2px rgba(0,0,0,.6)}
+.l2{display:inline-block;position:relative;margin-top:10px;font-weight:900;font-size:66px;color:var(--y);
+  letter-spacing:1px;text-shadow:0 4px 18px rgba(0,0,0,.55),0 2px 3px rgba(0,0,0,.5)}
+.l2 .hl{position:absolute;left:-14px;right:-14px;bottom:4px;height:22px;background:var(--y);opacity:.28;
+  border-radius:6px;transform-origin:left center;transform:scaleX(0);z-index:-1}
+.word{display:inline-block}
+/* subjects */
+#subj{top:210px}
+.badge{display:inline-flex;align-items:center;gap:12px;background:var(--y);color:var(--ink);font-weight:900;
+  font-size:44px;padding:10px 26px;border-radius:40px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 14px;width:900px;margin:22px auto 0}
+.chip{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.96);color:var(--ink);
+  font-weight:800;font-size:32px;padding:9px 20px 9px 12px;border-radius:30px;box-shadow:0 6px 18px rgba(0,0,0,.3);opacity:0}
+.tick{width:34px;height:34px;border-radius:50%;background:var(--y);display:grid;place-items:center}
+.tick svg{width:20px;height:20px}
+/* cta */
+.basket{display:inline-grid;place-items:center;width:76px;height:76px;border-radius:22px;background:var(--y);
+  vertical-align:middle;margin-left:16px;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.basket svg{width:46px;height:46px}
+.yr{color:var(--w)}
+/* soft light leak used on transitions */
+#flash{position:absolute;inset:0;background:radial-gradient(120% 60% at 50% 10%,rgba(255,236,170,.55),rgba(255,236,170,0) 60%);opacity:0}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="flash"></div>
+
+  <div class="card" id="c1">
+    <div class="l1">Buku latihan untuk</div>
+    <div class="l2"><span class="hl"></span>ANAK 6 TAHUN</div>
+  </div>
+
+  <div class="card" id="subj">
+    <div class="badge">5 SUBJEK</div>
+    <div class="chips">
+      <span class="chip"><span class="tick"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" stroke="#141414" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Bahasa Melayu</span>
+      <span class="chip"><span class="tick"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" stroke="#141414" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>English</span>
+      <span class="chip"><span class="tick"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" stroke="#141414" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Matematik</span>
+      <span class="chip"><span class="tick"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" stroke="#141414" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Alam &amp; Manusia</span>
+      <span class="chip"><span class="tick"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" stroke="#141414" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Bahasa Arab</span>
+    </div>
+  </div>
+
+  <div class="card" id="c3">
+    <div class="l1">Tahap pembelajaran anak</div>
+    <div class="l2"><span class="hl"></span>BERBEZA</div>
+  </div>
+
+  <div class="card" id="c4">
+    <div class="l1">Kenal pasti apa anak</div>
+    <div class="l2"><span class="hl"></span>DAH KUASAI</div>
+  </div>
+
+  <div class="card" id="c5">
+    <div class="l1">&amp; apa yang</div>
+    <div class="l2"><span class="hl"></span>BELUM MANTAP</div>
+  </div>
+
+  <div class="card" id="c6">
+    <div class="l1">Fokus bantu bahagian</div>
+    <div class="l2"><span class="hl"></span>YANG ANAK PERLUKAN</div>
+  </div>
+
+  <div class="card" id="c7">
+    <div class="l1">Bakal masuk</div>
+    <div class="l2"><span class="hl"></span>TAHUN 1 <span class="word yr" id="yr">2027?</span></div>
+  </div>
+
+  <div class="card" id="c8">
+    <div class="l1">Dapatkan sekarang di</div>
+    <div class="l2"><span class="hl"></span>BEG KUNING<span class="basket" id="bk"><svg viewBox="0 0 24 24"><path d="M3 9h18l-1.6 10.2A2 2 0 0117.4 21H6.6a2 2 0 01-2-1.8L3 9z" fill="#141414"/><path d="M8 9l3-5M16 9l-3-5" stroke="#141414" stroke-width="2.2" stroke-linecap="round"/></svg></span></div>
+  </div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script>
+// HyperFrames-style composition: one paused GSAP timeline, seeked per frame by the renderer.
+const DURATION = 23.31;
+const tl = gsap.timeline({paused:true});
+
+function card(id, tin, thl, tout){
+  const el = '#'+id;
+  tl.fromTo(el,{opacity:0,y:-26,scale:.96},{opacity:1,y:0,scale:1,duration:.32,ease:'back.out(1.8)'},tin);
+  tl.fromTo(el+' .l2',{y:18,opacity:0},{y:0,opacity:1,duration:.3,ease:'power3.out'},tin+.08);
+  tl.to(el+' .hl',{scaleX:1,duration:.35,ease:'power2.out'},thl);
+  tl.fromTo(el+' .l2',{scale:1},{scale:1.06,duration:.14,yoyo:true,repeat:1,ease:'power1.inOut'},thl);
+  tl.to(el,{opacity:0,y:-14,duration:.2,ease:'power2.in'},tout);
+}
+function flash(t){ tl.fromTo('#flash',{opacity:0},{opacity:1,duration:.08,yoyo:true,repeat:1,ease:'sine.inOut'},t); }
+
+// Hook (0 - 3s): strong opener
+card('c1', 0.05, 1.57, 2.92);
+
+// 5 subjects with chip pop-ins synced to each spoken subject
+tl.fromTo('#subj',{opacity:0},{opacity:1,duration:.01},3.55);
+tl.fromTo('#subj .badge',{scale:.4,opacity:0},{scale:1,opacity:1,duration:.35,ease:'back.out(2.2)'},3.55);
+[4.30,4.88,5.34,5.96,7.08].forEach((t,i)=>{
+  tl.fromTo(`#subj .chip:nth-child(${i+1})`,{opacity:0,scale:.5,y:14},{opacity:1,scale:1,y:0,duration:.3,ease:'back.out(2.4)'},t);
+});
+tl.to('#subj',{opacity:0,y:-14,duration:.22,ease:'power2.in'},7.40);
+
+card('c3', 7.54, 8.98, 9.36);
+card('c4', 9.50, 12.48, 13.10);
+card('c5', 13.18, 13.82, 14.48);
+card('c6', 14.58, 16.70, 17.95);
+card('c7', 18.06, 19.95, 21.05);
+tl.fromTo('#yr',{scale:.3,opacity:0},{scale:1,opacity:1,duration:.32,ease:'back.out(2.6)'},20.38);
+gsap.set('#yr',{opacity:0});
+card('c8', 21.18, 21.75, 23.40);
+tl.fromTo('#bk',{rotation:-14,scale:.6},{rotation:0,scale:1,duration:.45,ease:'elastic.out(1,.5)'},21.30);
+tl.to('#bk',{y:-10,duration:.28,yoyo:true,repeat:3,ease:'sine.inOut'},21.9);
+
+[3.55,7.54,14.58,18.06,21.18].forEach(flash);
+
+tl.set({}, {}, DURATION);
+window.__hf = { duration: DURATION, seek: t => { tl.seek(t, false); } };
+document.fonts.ready.then(()=>{ window.__ready = true; });
+</script>
+</body>
+</html>
