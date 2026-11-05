@@ -38,6 +38,11 @@
       .basket { width: 64px; height: 64px; }
       .arrow { font-size: 70px; color: #FFD60A; font-weight: 900; margin-top: 6px;
                text-shadow: 0 3px 12px rgba(0,0,0,.6); }
+      /* top band: glyph background only at the top, slightly dark, fades into the real footage */
+      .topband { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 5;
+                 opacity: .9; pointer-events: none;
+                 -webkit-mask-image: linear-gradient(to bottom, #000 0px, #000 430px, transparent 760px);
+                 mask-image: linear-gradient(to bottom, #000 0px, #000 430px, transparent 760px); }
     </style>
   </head>
   <body>
@@ -45,26 +50,30 @@
          data-width="1080" data-height="1920">
 
       <!-- ================= A-ROLL: 9 segments (cut repetition + dead air) ================= -->
-      <video id="v1" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v1" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="0" data-duration="2.9" data-media-start="0" data-track-index="0" data-audio-group="vo"></video>
-      <video id="v2" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v2" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="2.9" data-duration="2.6" data-media-start="2.9" data-track-index="0" data-audio-group="vo"></video>
-      <video id="v3" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v3" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="5.5" data-duration="3.333" data-media-start="5.5" data-track-index="0" data-audio-group="vo"></video>
-      <video id="v4" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v4" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="8.833" data-duration="3.9" data-media-start="8.833" data-track-index="0" data-audio-group="vo" data-fade-out="0.03"></video>
       <!-- removed src 12.733–14.167 "Boleh buat persediaan awal" (repeated later) -->
-      <video id="v5" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v5" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="12.733" data-duration="2.9" data-media-start="14.167" data-track-index="0" data-audio-group="vo" data-fade-in="0.03"></video>
       <!-- removed src 17.067–17.300 dead air -->
-      <video id="v6" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v6" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="15.633" data-duration="0.7" data-media-start="17.3" data-track-index="0" data-audio-group="vo"></video>
-      <video id="v7" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v7" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="16.333" data-duration="2.367" data-media-start="18.0" data-track-index="0" data-audio-group="vo"></video>
-      <video id="v8" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v8" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="18.7" data-duration="4.166" data-media-start="20.367" data-track-index="0" data-audio-group="vo"></video>
-      <video id="v9" class="clip seg" src="assets/composited.mp4" playsinline data-has-audio="true"
+      <video id="v9" class="clip seg" src="assets/graded.mp4" playsinline data-has-audio="true"
         data-start="22.866" data-duration="4.534" data-media-start="24.533" data-track-index="0" data-audio-group="vo" data-fade-out="0.25"></video>
+
+      <!-- ================= TOP BAND: glyph background (top only) ================= -->
+      <video id="topbg" class="clip topband" src="assets/glyph_bg.mp4" muted playsinline
+        data-start="0" data-duration="27.4" data-media-start="0" data-track-index="1"></video>
 
       <hf-audio-group id="vo"
         data-fx-chain="{&quot;version&quot;:1,&quot;nodes&quot;:[{&quot;type&quot;:&quot;highpass&quot;,&quot;id&quot;:&quot;hp&quot;,&quot;label&quot;:&quot;Remove rumble&quot;,&quot;params&quot;:{&quot;frequency&quot;:85}},{&quot;type&quot;:&quot;peaking&quot;,&quot;id&quot;:&quot;pk&quot;,&quot;label&quot;:&quot;Clarity&quot;,&quot;params&quot;:{&quot;frequency&quot;:3000,&quot;gain&quot;:2,&quot;q&quot;:1}},{&quot;type&quot;:&quot;limiter&quot;,&quot;id&quot;:&quot;lim&quot;,&quot;params&quot;:{&quot;limit&quot;:-1}}]}"></hf-audio-group>
