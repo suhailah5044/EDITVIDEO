@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 W, H, FPS = 1080, 1920, 30
 SR = 48000
 FONT_DIR = "/usr/share/fonts/opentype/inter/"
-F_MAIN = ImageFont.truetype(FONT_DIR + "InterDisplay-ExtraBold.otf", 52)
+F_MAIN = ImageFont.truetype(FONT_DIR + "InterDisplay-Black.otf", 54)
 F_LABEL = ImageFont.truetype(FONT_DIR + "InterDisplay-Bold.otf", 26)
 F_CHIP = ImageFont.truetype(FONT_DIR + "InterDisplay-ExtraBold.otf", 44)
 
@@ -96,19 +96,12 @@ def build_card(card):
     ch = int(pad_y * 2 + label_h + (14 if label_h else 0) + body_h)
     sh = 30  # shadow margin
     img = Image.new("RGBA", (cw + 2 * sh, ch + 2 * sh), (0, 0, 0, 0))
-    # soft shadow
-    shadow = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).rounded_rectangle((sh, sh + 8, sh + cw, sh + ch + 8), 30, fill=(0, 0, 0, 90))
-    img = Image.alpha_composite(img, shadow.filter(ImageFilter.GaussianBlur(14)))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle((sh, sh, sh + cw, sh + ch), 30, fill=WHITE)
     y = sh + pad_y
     if card.get("label"):
-        lw = F_LABEL.getlength(card["label"]) + 36
-        lx = sh + (cw - lw) / 2
-        d.rounded_rectangle((lx, y, lx + lw, y + label_h), label_h // 2, fill=INK)
-        d.text((lx + lw / 2, y + label_h / 2 + 1), card["label"], font=F_LABEL, fill=YELLOW, anchor="mm")
-        y += label_h + 14
+        d.text((sh + cw / 2, y + label_h / 2), card["label"], font=F_LABEL, fill=YELLOW, anchor="mm",
+               stroke_width=4, stroke_fill=INK)
+        y += label_h + 4
     chip_boxes = []
     if lines:
         for words, lw_ in lines:
@@ -117,7 +110,11 @@ def build_card(card):
                 if h:
                     nxt = i + 1 < len(words) and words[i + 1][1]
                     d.rounded_rectangle((x, y + 6, x + ww + (space + 12 if nxt else 0), y + lh - 4), 10, fill=YELLOW)
-                d.text((x + (9 if h else 0), y + lh / 2 + 1), w, font=F_MAIN, fill=INK, anchor="lm")
+                if h:
+                    d.text((x + 9, y + lh / 2 + 1), w, font=F_MAIN, fill=INK, anchor="lm")
+                else:
+                    d.text((x, y + lh / 2 + 1), w, font=F_MAIN, fill=WHITE, anchor="lm",
+                           stroke_width=4, stroke_fill=INK)
                 x += ww + space
             y += lh
     else:
@@ -125,7 +122,14 @@ def build_card(card):
         for (c, _), w_ in zip(card["chips"], chip_w):
             chip_boxes.append((int(x), int(y), int(x + w_), int(y + body_h), c))
             x += w_ + 18
-    return img, chip_boxes
+    # soft drop shadow so text reads on any background (no box)
+    shadow = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    shadow.putalpha(img.getchannel("A").point(lambda v: int(v * 0.55)))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(8))
+    out = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    out.alpha_composite(shadow, (0, 4))
+    out.alpha_composite(img)
+    return out, chip_boxes
 
 def chip_img(text, w, h):
     im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -284,44 +288,53 @@ def process(frame_arr, t):
     return rgba.convert("RGB")
 
 
+def overlay_frame(t):
+    fr = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    draw_overlays(fr, t)
+    return fr
+
+
 def main():
+    """Outputs (all next to OUT):
+      OUT.mp4          original HDR footage (HLG 10-bit, colours untouched) + overlay + SFX
+      OUT_overlay.mov  transparent overlay only (PNG-in-MOV with alpha) for own editing
+      OUT_sfx.wav      sound effects only, timed to the original video
+    """
     raw, out = sys.argv[1], sys.argv[2]
-    if "--still" in sys.argv:
-        times = [float(x) for x in sys.argv[sys.argv.index("--still") + 1].split(",")]
-        for t in times:
-            buf = subprocess.run(["ffmpeg", "-v", "error", "-ss", str(t), "-i", raw, "-vf", GRADE,
-                                  "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
-                                 capture_output=True, check=True).stdout
-            process(np.frombuffer(buf, np.uint8).reshape(H, W, 3), t).save(f"{out}_{t:05.2f}.jpg", quality=88)
-        return
     dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                                          "-of", "csv=p=0", raw]).decode())
-    sfx_wav = out + ".sfx.wav"
-    write_wav(sfx_wav, sfx_track(dur))
-    dec = subprocess.Popen(["ffmpeg", "-v", "error", "-i", raw, "-vf", GRADE + f",fps={FPS}",
-                            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
-    afilt = ("[0:a]aresample=48000[v];"
-             "[2:a]volume=0.9,aresample=48000[s];"
-             "[v][s]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.95[a]")
-    enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y",
-                            "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-                            "-i", raw, "-i", sfx_wav,
-                            "-filter_complex", afilt.replace("[0:a]", "[1:a]"),
-                            "-map", "0:v", "-map", "[a]",
-                            "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p",
-                            "-profile:v", "high", "-movflags", "+faststart",
-                            "-c:a", "aac", "-b:a", "192k", "-shortest", out], stdin=subprocess.PIPE)
-    fsz = W * H * 3
-    i = 0
-    while True:
-        b = dec.stdout.read(fsz)
-        if len(b) < fsz:
-            break
-        enc.stdin.write(process(np.frombuffer(b, np.uint8).reshape(H, W, 3), i / FPS).tobytes())
-        i += 1
-        if i % 150 == 0:
-            print(f"{i/FPS:.1f}s", flush=True)
-    enc.stdin.close(); enc.wait(); dec.wait()
+    nfr = int(round(dur * FPS))
+    sfx_wav, ov_mov = out + "_sfx.wav", out + "_overlay.mov"
+    write_wav(sfx_wav, sfx_track(dur)[: int(dur * SR)])
+
+    # 1) transparent overlay track
+    enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgba",
+                            "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
+                            "-c:v", "png", "-pix_fmt", "rgba", ov_mov], stdin=subprocess.PIPE)
+    for i in range(nfr):
+        enc.stdin.write(overlay_frame(i / FPS).tobytes())
+        if i % 300 == 0:
+            print(f"overlay {i/FPS:.0f}s", flush=True)
+    enc.stdin.close(); enc.wait()
+
+    # 2) composite on the untouched HDR footage. Only the graphics are converted
+    #    (sRGB -> BT.2020 HLG, white at 203 nits = HLG reference white).
+    fc = ("[1:v]format=rgba,split[c][a];"
+          "[a]alphaextract,format=gray10le[al];"
+          "[c]format=gbrpf32le,zscale=tin=iec61966-2-1:pin=bt709:min=gbr:rin=full:"
+          "t=arib-std-b67:p=bt2020:m=bt2020nc:r=tv:npl=203,format=yuv444p10le[cc];"
+          "[cc][al]alphamerge[ov];"
+          "[0:v]format=yuv444p10le[bg];"
+          "[bg][ov]overlay=0:0:format=yuv444p10:eof_action=pass,format=yuv420p10le,"
+          "setparams=color_primaries=bt2020:color_trc=arib-std-b67:colorspace=bt2020nc:range=tv[v];"
+          "[0:a]aresample=48000[va];[2:a]aresample=48000[s];"
+          "[va][s]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.97[a]")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-i", ov_mov, "-i", sfx_wav,
+                    "-filter_complex", fc, "-map", "[v]", "-map", "[a]",
+                    "-c:v", "libx265", "-preset", "medium", "-crf", "16", "-tag:v", "hvc1",
+                    "-x265-params", "log-level=error:colorprim=bt2020:transfer=arib-std-b67:colormatrix=bt2020nc:range=limited",
+                    "-color_primaries", "bt2020", "-color_trc", "arib-std-b67", "-colorspace", "bt2020nc",
+                    "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", out + ".mp4"], check=True)
     print("done", out)
 
 
