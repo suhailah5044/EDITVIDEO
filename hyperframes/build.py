@@ -204,10 +204,10 @@ html,body {{ width:{W}px; height:{H}px; overflow:hidden; background:var(--bg); }
 
   // hook title over the intro clip
   if (D.hook) {{
+    // fully readable from the very first frame (TikTok uses it as the thumbnail), then a quick pop
     tl.set("#hook", {{autoAlpha:1}}, 0);
-    tl.fromTo("#hook", {{scale:.72, y:-14}}, {{scale:1, y:0, duration:.45, ease:"back.out(2)"}}, 0.06);
-    tl.from("#hook .hk", {{y:-10, autoAlpha:0, duration:.3, ease:"power2.out"}}, 0.2);
-    tl.from("#hook .hw", {{y:22, autoAlpha:0, duration:.26, ease:"back.out(2.2)", stagger:{{each:.06, from:"start"}}}}, 0.32);
+    tl.fromTo("#hook", {{scale:1.07}}, {{scale:1, duration:.35, ease:"back.out(2.5)"}}, 0);
+    tl.fromTo("#hook .hw", {{y:0}}, {{y:-6, duration:.12, ease:"power1.out", yoyo:true, repeat:1, stagger:{{each:.05, from:"start"}}}}, 0.35);
     tl.to("#hook", {{scale:1.03, duration:.22, yoyo:true, repeat:1, ease:"sine.inOut"}}, 1.45);
     tl.to("#hook", {{autoAlpha:0, y:-10, duration:.2, ease:"power1.in"}}, 2.18);
   }}
@@ -250,7 +250,8 @@ SOURCES = {  # slide id -> (source file, in-point seconds, crop on the rotated 2
     "s2": ("IMG_1591.MOV", 5.5, "1620:2880:270:420"),
     "s3": ("IMG_1593.MOV", 0.5, None), "s4": ("IMG_1592.MOV", 0.3, None),
     "s5": ("IMG_1594.MOV", 0.0, None), "s6": ("IMG_1596.MOV", 0.5, None),
-    "s7": ("IMG_1599.MOV", 0.3, None), "s8": ("IMG_1548.MOV", 0.3, None),
+    "s7": ("IMG_1599.MOV", 1.4, None),   # persamaan linear page (0.0-0.45s of this clip shows another book)
+    "s8": ("IMG_1548.MOV", 0.3, None),
     "s9": ("IMG_1597.MOV", 1.6, None),
 }
 
