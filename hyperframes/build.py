@@ -319,7 +319,7 @@ HOOKS = [
     # --- videos 11-15: body C
     ("C", "IMG_1597.MOV", 0.0, None, "BUKU YANG RAMAI CARI", "Algebra jadi mudah dengan buku ni 📘"),                   # cover reveal
     ("C", "IMG_1597.MOV", 7.5, None, "ADA GROUP SUPPORT", "Tak faham? Boleh tanya terus 💬"),                           # back cover, QR groups
-    ("C", "IMG_1597.MOV", 9.75, None, "CUBA JAWAB", "Boleh siapkan soalan ni dalam 1 minit? ⏱️"),                      # set latihan
+    ("C", "IMG_1597.MOV", 9.88, None, "CUBA JAWAB", "Boleh siapkan soalan ni dalam 1 minit? ⏱️"),                      # set latihan
     ("C", "IMG_1592.MOV", 0.5, "1080:1920:700:200", "ANAK STRUGGLE MATH?", "Tengok video ni sampai habis 👀"),           # close-up: page title
     ("C", "IMG_1592.MOV", 2.4, "1080:1920:500:900", "LANGKAH PERTAMA", "Samakan penyebut dulu, baru tolak ✍️"),          # close-up: steps
     # --- videos 16-20: body D
