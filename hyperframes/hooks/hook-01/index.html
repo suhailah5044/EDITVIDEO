@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ms" style="overflow:hidden;margin:0">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Kuasai Algebra – Menolak Algebra</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@hyperframes/core/dist/hyperframe.runtime.iife.js"></script>
+<style>
+@font-face { font-family:"Montserrat"; font-weight:600 900; font-style:normal; font-display:block; src:url(../../assets/montserrat-upright.woff2) format("woff2"); }
+:root { --bg:#0b0b0c; --ink:#ffffff; --gold:#f5c21b; --font:"Montserrat","Noto Color Emoji",sans-serif; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:1080px; height:1920px; overflow:hidden; background:var(--bg); }
+#main { position:relative; width:1080px; height:1920px; overflow:hidden; font-family:var(--font); background:var(--bg); }
+
+/* original footage, full screen, no filters */
+.slide { position:absolute; left:0; top:0px; width:1080px; height:1920px; }
+.frame { position:absolute; inset:0; overflow:hidden; }
+.media { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+
+/* caption box - reference style, kept small */
+#box { position:absolute; left:50%; top:120px; width:820px; margin-left:-410px; padding:14px 26px 18px;
+  border-radius:24px; border:3px solid var(--gold); background:rgba(12,12,12,.74);
+  box-shadow:0 10px 30px rgba(0,0,0,.35); text-align:center; transform-origin:50% 0; visibility:hidden; }
+.kick { position:absolute; left:0; right:0; top:14px; font-weight:800; font-size:22px; letter-spacing:.16em;
+  color:var(--gold); visibility:hidden; }
+.lines { position:relative; height:62px; margin-top:30px; }
+.cap { position:absolute; left:0; right:0; top:0; visibility:hidden; white-space:nowrap;
+  font-weight:800; font-size:46px; line-height:62px; letter-spacing:.02em; color:#fff; }
+.w { display:inline-block; }
+.emo { font-size:42px; margin-left:4px; }
+
+/* hook title - same look as the caption box, one size up, max 2 lines */
+#hook { position:absolute; left:50%; top:110px; width:900px; margin-left:-450px; padding:16px 34px 22px;
+  border-radius:26px; border:3px solid var(--gold); background:rgba(12,12,12,.80);
+  box-shadow:0 12px 34px rgba(0,0,0,.4); text-align:center; transform-origin:50% 0; visibility:hidden; }
+.hk { font-weight:800; font-size:24px; letter-spacing:.16em; color:var(--gold); }
+.ht { margin-top:6px; font-weight:800; font-size:48px; line-height:1.2; letter-spacing:.01em; color:#fff; text-wrap:balance; }
+.hw { display:inline-block; }
+</style>
+</head>
+<body>
+<div id="main" data-composition-id="main" data-width="1080" data-height="1920" data-start="0" data-duration="27.6">
+  <div class="slide clip" id="s1" data-start="0.000" data-duration="2.55" data-track-index="1"><div class="frame"><video id="s1-m" class="media clip" src="../../assets/hooks/intro-01.mp4" muted playsinline preload="auto" data-start="0.000" data-duration="2.55" data-track-index="20" style="object-position:50% 62%"></video></div></div><div class="slide clip" id="s2" data-start="2.250" data-duration="4.23" data-track-index="2" style="visibility:hidden"><div class="frame"><video id="s2-m" class="media clip" src="../../assets/s2.mp4" muted playsinline preload="auto" data-start="2.250" data-duration="4.23" data-track-index="21" style="object-position:50% 50%"></video></div></div><div class="slide clip" id="s3" data-start="6.180" data-duration="4.45" data-track-index="1" style="visibility:hidden"><div class="frame"><video id="s3-m" class="media clip" src="../../assets/s3.mp4" muted playsinline preload="auto" data-start="6.180" data-duration="4.45" data-track-index="22" style="object-position:50% 55%"></video></div></div><div class="slide clip" id="s4" data-start="10.330" data-duration="3.4" data-track-index="2" style="visibility:hidden"><div class="frame"><video id="s4-m" class="media clip" src="../../assets/s4.mp4" muted playsinline preload="auto" data-start="10.330" data-duration="3.4" data-track-index="23" style="object-position:50% 55%"></video></div></div><div class="slide clip" id="s5" data-start="13.430" data-duration="3.4" data-track-index="1" style="visibility:hidden"><div class="frame"><video id="s5-m" class="media clip" src="../../assets/s5.mp4" muted playsinline preload="auto" data-start="13.430" data-duration="3.4" data-track-index="24" style="object-position:50% 45%"></video></div></div><div class="slide clip" id="s6" data-start="16.530" data-duration="2.87" data-track-index="2" style="visibility:hidden"><div class="frame"><video id="s6-m" class="media clip" src="../../assets/s6.mp4" muted playsinline preload="auto" data-start="16.530" data-duration="2.87" data-track-index="25" style="object-position:50% 50%"></video></div></div><div class="slide clip" id="s7" data-start="19.100" data-duration="1.91" data-track-index="1" style="visibility:hidden"><div class="frame"><video id="s7-m" class="media clip" src="../../assets/s7.mp4" muted playsinline preload="auto" data-start="19.100" data-duration="1.91" data-track-index="26" style="object-position:50% 45%"></video></div></div><div class="slide clip" id="s8" data-start="20.710" data-duration="1.8" data-track-index="2" style="visibility:hidden"><div class="frame"><video id="s8-m" class="media clip" src="../../assets/s8.mp4" muted playsinline preload="auto" data-start="20.710" data-duration="1.8" data-track-index="27" style="object-position:50% 40%"></video></div></div><div class="slide clip" id="s9" data-start="22.210" data-duration="5.39" data-track-index="1" style="visibility:hidden"><div class="frame"><video id="s9-m" class="media clip" src="../../assets/s9.mp4" muted playsinline preload="auto" data-start="22.210" data-duration="5.39" data-track-index="28" style="object-position:50% 60%"></video></div></div>
+  <div id="box"><div class="kick" id="k1">PECAHAN ALGEBRA</div><div class="kick" id="k2">CONTOH DALAM BUKU</div><div class="kick" id="k3">TIPS</div><div class="kick" id="k4">KUASAI ALGEBRA</div><div class="kick" id="k5">APA ADA DALAM BUKU</div><div class="kick" id="k6">BONUS</div><div class="kick" id="k7">JOM DAPATKAN</div><div class="lines"><div class="cap" id="c3"><span class="w" id="c3w0">Dalam</span> <span class="w" id="c3w1">pecahan</span> <span class="w" id="c3w2">algebra</span></div><div class="cap" id="c4"><span class="w" id="c4w0">bukan</span> <span class="w" id="c4w1">setakat</span> <span class="w" id="c4w2">tambah</span> <span class="w emo" id="c4e">🤔</span></div><div class="cap" id="c5"><span class="w" id="c5w0">kita</span> <span class="w" id="c5w1">kena</span> <span class="w" id="c5w2">tahu</span> <span class="w" id="c5w3">juga</span></div><div class="cap" id="c6"><span class="w" id="c6w0">cara</span> <span class="w" id="c6w1">tolak</span></div><div class="cap" id="c7"><span class="w" id="c7w0">pecahan</span> <span class="w" id="c7w1">dengan</span> <span class="w" id="c7w2">betul</span> <span class="w emo" id="c7e">✅</span></div><div class="cap" id="c8"><span class="w" id="c8w0">Contoh</span> <span class="w" id="c8w1">dalam</span> <span class="w" id="c8w2">buku</span> <span class="w" id="c8w3">ni</span> <span class="w emo" id="c8e">📖</span></div><div class="cap" id="c9"><span class="w" id="c9w0">mula-mula</span> <span class="w" id="c9w1">kena</span></div><div class="cap" id="c10"><span class="w" id="c10w0">samakan</span> <span class="w" id="c10w1">penyebut</span></div><div class="cap" id="c11"><span class="w" id="c11w0">kemudian</span> <span class="w" id="c11w1">ikut</span> <span class="w" id="c11w2">langkah</span></div><div class="cap" id="c12"><span class="w" id="c12w0">penyelesaian</span> <span class="w" id="c12w1">sampai</span></div><div class="cap" id="c13"><span class="w" id="c13w0">dapat</span> <span class="w" id="c13w1">jawapan</span> <span class="w emo" id="c13e">🎯</span></div><div class="cap" id="c14"><span class="w" id="c14w0">Nampak</span> <span class="w" id="c14w1">macam</span></div><div class="cap" id="c15"><span class="w" id="c15w0">banyak</span> <span class="w" id="c15w1">step</span> <span class="w" id="c15w2">kan</span> <span class="w emo" id="c15e">😵</span></div><div class="cap" id="c16"><span class="w" id="c16w0">tapi</span> <span class="w" id="c16w1">bila</span> <span class="w" id="c16w2">dah</span></div><div class="cap" id="c17"><span class="w" id="c17w0">faham</span> <span class="w" id="c17w1">tekniknya</span></div><div class="cap" id="c18"><span class="w" id="c18w0">lebih</span> <span class="w" id="c18w1">mudah</span> <span class="w" id="c18w2">nak</span> <span class="w" id="c18w3">buat</span> <span class="w emo" id="c18e">😍</span></div><div class="cap" id="c19"><span class="w" id="c19w0">Sebab</span> <span class="w" id="c19w1">tu</span> <span class="w" id="c19w2">buku</span></div><div class="cap" id="c20"><span class="w" id="c20w0">Kuasai</span> <span class="w" id="c20w1">Algebra</span> <span class="w" id="c20w2">ni</span></div><div class="cap" id="c21"><span class="w" id="c21w0">berbaloi</span> <span class="w emo" id="c21e">💯</span></div><div class="cap" id="c22"><span class="w" id="c22w0">untuk</span> <span class="w" id="c22w1">anak</span> <span class="w" id="c22w2">korang</span> <span class="w" id="c22w3">tau</span></div><div class="cap" id="c23"><span class="w" id="c23w0">Bukan</span> <span class="w" id="c23w1">satu</span> <span class="w" id="c23w2">topik</span> <span class="w" id="c23w3">je</span></div><div class="cap" id="c24"><span class="w" id="c24w0">ada</span> <span class="w" id="c24w1">juga</span> <span class="w" id="c24w2">asas</span> <span class="w" id="c24w3">algebra</span></div><div class="cap" id="c25"><span class="w" id="c25w0">operasi</span> <span class="w" id="c25w1">kembangan</span></div><div class="cap" id="c26"><span class="w" id="c26w0">pemfaktoran</span> <span class="w" id="c26w1">dan</span> <span class="w" id="c26w2">juga</span></div><div class="cap" id="c27"><span class="w" id="c27w0">persamaan</span> <span class="w" id="c27w1">linear</span></div><div class="cap" id="c28"><span class="w" id="c28w0">Dengan</span> <span class="w" id="c28w1">latihan</span> <span class="w" id="c28w2">dan</span></div><div class="cap" id="c29"><span class="w" id="c29w0">juga</span> <span class="w" id="c29w1">video</span> <span class="w" id="c29w2">tutorial</span> <span class="w emo" id="c29e">🎥</span></div><div class="cap" id="c30"><span class="w" id="c30w0">Kalau</span> <span class="w" id="c30w1">anak</span> <span class="w" id="c30w2">korang</span> <span class="w" id="c30w3">selalu</span></div><div class="cap" id="c31"><span class="w" id="c31w0">struggle</span> <span class="w" id="c31w1">dengan</span> <span class="w" id="c31w2">Math</span> <span class="w" id="c31w3">ni</span> <span class="w emo" id="c31e">😩</span></div><div class="cap" id="c32"><span class="w" id="c32w0">boleh</span> <span class="w" id="c32w1">grab</span></div><div class="cap" id="c33"><span class="w" id="c33w0">buku</span> <span class="w" id="c33w1">Kuasai</span> <span class="w" id="c33w2">Algebra</span></div><div class="cap" id="c34"><span class="w" id="c34w0">dekat</span> <span class="w" id="c34w1">beg</span> <span class="w" id="c34w2">kuning</span> <span class="w" id="c34w3">saya</span> <span class="w emo" id="c34e">🛒</span></div></div></div>
+  <div id="hook"><div class="hk">RAMAI SILAP DI SINI</div><div class="ht"><span class="hw">Tolak</span> <span class="hw">pecahan</span> <span class="hw">algebra</span> <span class="hw">tapi</span> <span class="hw">jawapan</span> <span class="hw">salah? 😱</span></div></div>
+  <audio id="vo" src="../../assets/vo.m4a" data-start="0" data-duration="27.35" data-track-index="40"></audio>
+</div>
+<script>
+(function(){
+  var D = {"slides": [{"id": "s1", "s": 0, "e": 2.55}, {"id": "s2", "s": 2.25, "e": 6.48}, {"id": "s3", "s": 6.18, "e": 10.63}, {"id": "s4", "s": 10.33, "e": 13.73}, {"id": "s5", "s": 13.43, "e": 16.83}, {"id": "s6", "s": 16.53, "e": 19.4}, {"id": "s7", "s": 19.1, "e": 21.01}, {"id": "s8", "s": 20.71, "e": 22.51}, {"id": "s9", "s": 22.21, "e": 27.6}], "groups": [[1, 2.46], [2, 6.36], [3, 10.54], [4, 13.62], [5, 16.74], [6, 20.9], [7, 22.4]], "caps": [{"i": 3, "s": 2.46, "e": 3.6, "w": [2.46, 2.78, 3.06], "emo": false}, {"i": 4, "s": 3.6, "e": 4.36, "w": [3.6, 3.76, 4.0], "emo": true}, {"i": 5, "s": 4.36, "e": 4.88, "w": [4.36, 4.48, 4.64, 4.72], "emo": false}, {"i": 6, "s": 4.88, "e": 5.46, "w": [4.88, 5.02], "emo": false}, {"i": 7, "s": 5.46, "e": 6.36, "w": [5.46, 5.78, 6.06], "emo": true}, {"i": 8, "s": 6.36, "e": 7.06, "w": [6.36, 6.54, 6.64, 6.86], "emo": true}, {"i": 9, "s": 7.06, "e": 7.66, "w": [7.06, 7.5], "emo": false}, {"i": 10, "s": 7.66, "e": 8.4, "w": [7.66, 7.94], "emo": false}, {"i": 11, "s": 8.4, "e": 9.26, "w": [8.4, 8.72, 8.92], "emo": false}, {"i": 12, "s": 9.26, "e": 9.88, "w": [9.26, 9.72], "emo": false}, {"i": 13, "s": 9.88, "e": 10.54, "w": [9.88, 10.04], "emo": true}, {"i": 14, "s": 10.54, "e": 10.88, "w": [10.54, 10.78], "emo": false}, {"i": 15, "s": 10.88, "e": 11.52, "w": [10.88, 11.08, 11.32], "emo": true}, {"i": 16, "s": 11.52, "e": 12.06, "w": [11.52, 11.72, 11.96], "emo": false}, {"i": 17, "s": 12.06, "e": 12.84, "w": [12.06, 12.38], "emo": false}, {"i": 18, "s": 12.84, "e": 13.62, "w": [12.84, 13.0, 13.34, 13.4], "emo": true}, {"i": 19, "s": 13.62, "e": 14.22, "w": [13.62, 13.84, 13.92], "emo": false}, {"i": 20, "s": 14.22, "e": 15.2, "w": [14.22, 14.58, 15.02], "emo": false}, {"i": 21, "s": 15.2, "e": 15.76, "w": [15.2], "emo": true}, {"i": 22, "s": 15.76, "e": 16.74, "w": [15.76, 15.9, 16.1, 16.48], "emo": false}, {"i": 23, "s": 16.74, "e": 17.38, "w": [16.74, 16.8, 16.92, 17.24], "emo": false}, {"i": 24, "s": 17.38, "e": 18.32, "w": [17.38, 17.46, 17.58, 17.88], "emo": false}, {"i": 25, "s": 18.32, "e": 19.34, "w": [18.32, 18.76], "emo": false}, {"i": 26, "s": 19.34, "e": 20.16, "w": [19.34, 19.94, 20.02], "emo": false}, {"i": 27, "s": 20.16, "e": 20.9, "w": [20.16, 20.64], "emo": false}, {"i": 28, "s": 20.9, "e": 21.42, "w": [20.9, 21.04, 21.26], "emo": false}, {"i": 29, "s": 21.42, "e": 22.4, "w": [21.42, 21.58, 21.88], "emo": true}, {"i": 30, "s": 22.4, "e": 23.24, "w": [22.4, 22.54, 22.7, 22.96], "emo": false}, {"i": 31, "s": 23.24, "e": 24.42, "w": [23.24, 23.48, 23.88, 24.14], "emo": true}, {"i": 32, "s": 24.42, "e": 25.2, "w": [24.42, 24.74], "emo": false}, {"i": 33, "s": 25.2, "e": 26.36, "w": [25.2, 25.52, 25.96], "emo": false}, {"i": 34, "s": 26.36, "e": 27.55, "w": [26.36, 26.58, 26.66, 26.88], "emo": true}], "hook": true};
+  var T = 27.6, TR = 0.3;
+  window.__timelines = window.__timelines || {};
+  var tl = gsap.timeline({ paused:true });
+
+  // footage: plain compilation, short cross-dissolve (no zoom, no filter)
+  D.slides.forEach(function(s, i){
+    var el = "#"+s.id, last = i===D.slides.length-1;
+    if (i>0) {
+      tl.set(el, {autoAlpha:1}, s.s);
+      tl.fromTo(el, {opacity:0}, {opacity:1, duration:TR, ease:"none"}, s.s);
+    }
+    if (!last) tl.set(el, {autoAlpha:0}, s.e);
+  });
+
+  // hook title over the intro clip
+  if (D.hook) {
+    tl.set("#hook", {autoAlpha:1}, 0);
+    tl.fromTo("#hook", {scale:.72, y:-14}, {scale:1, y:0, duration:.45, ease:"back.out(2)"}, 0.06);
+    tl.from("#hook .hk", {y:-10, autoAlpha:0, duration:.3, ease:"power2.out"}, 0.2);
+    tl.from("#hook .hw", {y:22, autoAlpha:0, duration:.26, ease:"back.out(2.2)", stagger:{each:.06, from:"start"}}, 0.32);
+    tl.to("#hook", {scale:1.03, duration:.22, yoyo:true, repeat:1, ease:"sine.inOut"}, 1.45);
+    tl.to("#hook", {autoAlpha:0, y:-10, duration:.2, ease:"power1.in"}, 2.18);
+  }
+
+  // caption box: pops in for each sentence (new kicker), captions change inside it
+  tl.set("#box", {autoAlpha:1}, D.groups[0][1]);
+  D.groups.forEach(function(gg, n){
+    var g = gg[0], gs = gg[1];
+    var end = n+1 < D.groups.length ? D.groups[n+1][1] : T;
+    tl.set("#k"+g, {autoAlpha:1}, gs);
+    tl.fromTo("#box", {scale:.86, y:-10}, {scale:1, y:0, duration:.35, ease:"back.out(2.2)"}, gs);
+    tl.from("#k"+g, {y:-8, autoAlpha:0, duration:.25, ease:"power2.out"}, gs + .05);
+    if (n+1 < D.groups.length) tl.set("#k"+g, {autoAlpha:0}, end);
+  });
+  D.caps.forEach(function(c){
+    var id = "#c"+c.i;
+    tl.set(id, {autoAlpha:1}, c.s);
+    c.w.forEach(function(ws, j){
+      tl.from(id+"w"+j, {y:14, autoAlpha:0, duration:.2, ease:"back.out(2)"}, ws);
+    });
+    if (c.emo) {
+      var lw = c.w[c.w.length-1];
+      tl.from(id+"e", {scale:0, autoAlpha:0, duration:.28, ease:"back.out(3)"}, lw + .12);
+    }
+    tl.set(id, {autoAlpha:0}, c.e);
+  });
+
+  tl.to({}, {duration:.01}, T - .01);
+  window.__timelines["main"] = tl;
+})();
+</script>
+</body>
+</html>

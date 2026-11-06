@@ -1,0 +1,76 @@
+{
+ "total": 27.6,
+ "tr": 0.3,
+ "boundaries": [
+  0,
+  2.4,
+  6.33,
+  10.48,
+  13.58,
+  16.68,
+  19.25,
+  20.86,
+  22.36,
+  27.6
+ ],
+ "clips": [
+  {
+   "id": "s1",
+   "src": "IMG_1597.MOV",
+   "in": 9.75,
+   "crop": null
+  },
+  {
+   "id": "s2",
+   "src": "IMG_1591.MOV",
+   "in": 5.5,
+   "crop": "1620:2880:270:420"
+  },
+  {
+   "id": "s3",
+   "src": "IMG_1593.MOV",
+   "in": 0.5,
+   "crop": null
+  },
+  {
+   "id": "s4",
+   "src": "IMG_1592.MOV",
+   "in": 0.3,
+   "crop": null
+  },
+  {
+   "id": "s5",
+   "src": "IMG_1594.MOV",
+   "in": 0.0,
+   "crop": null
+  },
+  {
+   "id": "s6",
+   "src": "IMG_1596.MOV",
+   "in": 0.5,
+   "crop": null
+  },
+  {
+   "id": "s7",
+   "src": "IMG_1599.MOV",
+   "in": 0.3,
+   "crop": null
+  },
+  {
+   "id": "s8",
+   "src": "IMG_1548.MOV",
+   "in": 0.3,
+   "crop": null
+  },
+  {
+   "id": "s9",
+   "src": "IMG_1597.MOV",
+   "in": 1.6,
+   "crop": null
+  }
+ ],
+ "hook": {
+  "kicker": "CUBA JAWAB",
+  "title": "Boleh siapkan soalan ni dalam 1 minit? ⏱️"
+ }
+}
