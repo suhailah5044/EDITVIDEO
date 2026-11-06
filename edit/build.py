@@ -80,6 +80,21 @@ GROUPS = [
 ]
 
 
+# ---------------------------------------------------------------- variant (optional 4th arg: JSON file)
+# {"intro": [src, a, b, opts], "groups": [[t_in, t_out, y, [[[pop, kind, payload, [r,g,b], size], ...], ...]], ...]}
+DEFAULT_SEGS = list(SEGS)
+if len(sys.argv) > 4:
+    import json
+    _v = json.load(open(sys.argv[4]))
+    if "intro" in _v:
+        src_, a_, b_, o_ = _v["intro"]
+        if src_ == "TUT":
+            o_["clips"] = [tuple(c) for c in o_["clips"]]
+        SEGS[0] = (0.00, SEGS[0][1], src_, a_, b_, o_)
+    if "groups" in _v:
+        GROUPS = [(g[0], g[1], g[2], [[(r[0], r[1], tuple(r[2]) if r[1] == "f" else r[2], tuple(r[3]), r[4])
+                                         for r in line] for line in g[3]]) for g in _v["groups"]]
+
 _fonts = {}
 def font(path, size):
     k = (path, size)
@@ -142,24 +157,33 @@ def add_shadow(img):
 # prerender every run, lay out lines (centered), compute absolute positions
 LAYOUT = []   # (t_in, t_out, [(pop_t, img, cx, cy)])
 for t_in, t_out, yc, lines in GROUPS:
-    rendered = []
+    rendered = []   # per line: [(pop_t, img, pad)]
     for line in lines:
         imgs = []
         for (pt, kind, payload, color, size) in line:
-            im = render_text(payload, color, size) if kind == "t" else render_frac(payload[0], payload[1], color, size)
-            imgs.append((pt, add_shadow(im)))
+            if kind == "t":
+                im, pad = render_text(payload, color, size), 24 + size // 6
+            else:
+                im, pad = render_frac(payload[0], payload[1], color, size), 24
+            imgs.append((pt, add_shadow(im), pad))
         rendered.append(imgs)
-    PAD = 24
-    line_h = [max(im.height for _, im in l) - 2 * PAD for l in rendered]
+    MAXW = 1000
+    for li, l in enumerate(rendered):
+        lw = sum(im.width - 2 * pd for _, im, pd in l)
+        if lw > MAXW:   # auto-fit long lines
+            k = MAXW / lw
+            rendered[li] = [(pt, im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS), pd * k)
+                            for pt, im, pd in l]
+    line_h = [max(im.height - 2 * pd for _, im, pd in l) for l in rendered]
     gap = 6
     total_h = sum(line_h) + gap * (len(line_h) - 1)
     y = yc - total_h / 2
     items = []
     for l, lh in zip(rendered, line_h):
-        lw = sum(im.width - 2 * PAD for _, im in l)
+        lw = sum(im.width - 2 * pd for _, im, pd in l)
         x = W / 2 - lw / 2
-        for pt, im in l:
-            iw = im.width - 2 * PAD
+        for pt, im, pd in l:
+            iw = im.width - 2 * pd
             items.append((pt, im, x + iw / 2, y + lh / 2))
             x += iw
         y += lh + gap
@@ -529,50 +553,90 @@ def compose_footage(arr, t_loc, dur, punch):
     return im.convert("RGBA")
 
 # ---------------------------------------------------------------- render video
-silent = os.path.join(WORK, "video_noaudio.mp4")
-enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-                        "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "14", "-profile:v", "high",
-                        "-pix_fmt", "yuv420p", silent], stdin=subprocess.PIPE)
-PAGE = None
-QR_DEBUG = []
-for (t0, t1, src, a, b, opt) in SEGS:
+# QR keyframes belong to a source span (src, start, speed), so the same span can be reused as another video's intro
+def _speed(seg):
+    t0, t1, src, a, b, opt = seg
+    return round((b - a) / opt.get("play_dur", t1 - t0), 2)
+QR_BY_SRC = {(sg[2], sg[3], _speed(sg)): QR_KEYS[sg[0]] for sg in DEFAULT_SEGS if sg[0] in QR_KEYS}
+
+def segment_frames(seg):
+    """composed frames for one segment (no text overlays)."""
+    global PAGE
+    t0, t1, src, a, b, opt = seg
     f0, f1 = round(t0 * FPS), round(t1 * FPS)
     n = f1 - f0
     if src == "TUT":
         if PAGE is None:
-            pg = np.asarray(page_still(), np.float32)
-            PAGE = Image.fromarray(pg.astype(np.uint8)).convert("RGBA")
+            PAGE = Image.fromarray(page_still()).convert("RGBA")
         frames = []
-        first = True
         for (c0, c1, sa, sb, play_dur) in opt["clips"]:
             cn = round(c1 * FPS) - round(c0 * FPS)
             play = round((play_dur or (c1 - c0)) * FPS)
             fr = decode_screen(sa, sb, play)
             fr = fr + [fr[-1]] * (cn - len(fr))
-            frames += [(x, first and k == 0) for k, x in enumerate(fr[:cn])]
-            first = False
-        print(f"{t0:6.2f}-{t1:6.2f} TUT frames={n}/{len(frames)}", flush=True)
+            frames += fr[:cn]
         t_exit = opt.get("panel_out")
         for i in range(n):
-            arr = frames[min(i, len(frames) - 1)][0]
+            arr = frames[min(i, len(frames) - 1)]
             t = (f0 + i) / FPS
-            frame = paste_panel(page_with_bg(PAGE, t), arr, i / FPS, None if t_exit is None else t_exit - t)
             # page stays completely still (no zoom, no shake)
-            draw_overlays(frame, t)
-            enc.stdin.write(frame.convert("RGB").tobytes())
-        continue
+            yield paste_panel(page_with_bg(PAGE, t), arr, i / FPS, None if t_exit is None else t_exit - t)
+        return
     play = round(opt.get("play_dur", t1 - t0) * FPS)
     frames = decode_footage(src, a, b, play)
     frames = frames + [frames[-1]] * (n - len(frames))
     frames = frames[:n]
-    if t0 in QR_KEYS:
-        bx = qr_boxes(t0, n)
-        frames = [hide_boxes(f, b) for f, b in zip(frames, bx)]
-    print(f"{t0:6.2f}-{t1:6.2f} {src} [{a}-{b}] frames={n} speed={(b - a) / (play / FPS):.2f}", flush=True)
+    keys = QR_BY_SRC.get((src, a, _speed(seg)))
+    if keys:
+        QR_KEYS["_tmp"] = keys
+        bx = qr_boxes("_tmp", n)
+        frames = [hide_boxes(f, bb) for f, bb in zip(frames, bx)]
     for i, arr in enumerate(frames):
-        t = (f0 + i) / FPS
-        frame = compose_footage(arr, i / FPS, t1 - t0, not opt.get("nopunch"))
-        draw_overlays(frame, t)
+        yield compose_footage(arr, i / FPS, t1 - t0, not opt.get("nopunch"))
+
+import hashlib
+CACHE_VER = "c3"
+CACHE_DIR = os.path.join(WORK, "segcache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+
+def cached_frames(seg):
+    t0, t1 = seg[0], seg[1]
+    n = round(t1 * FPS) - round(t0 * FPS)
+    key = hashlib.md5((CACHE_VER + repr(seg)).encode()).hexdigest()[:16]
+    path = os.path.join(CACHE_DIR, key + ".mkv")
+    if os.path.exists(path):
+        cmd = ["ffmpeg", "-v", "quiet", "-i", path, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        size = W * H * 3
+        last = None
+        for _ in range(n):
+            buf = p.stdout.read(size)
+            if len(buf) == size:
+                last = Image.frombytes("RGB", (W, H), buf).convert("RGBA")
+            yield last.copy()
+        p.stdout.close(); p.wait()
+        return
+    tmp = path + ".part.mkv"
+    ce = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
+                           "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast", "-qp", "4",
+                           "-pix_fmt", "yuv444p", tmp], stdin=subprocess.PIPE)
+    for fr in segment_frames(seg):
+        ce.stdin.write(fr.convert("RGB").tobytes())
+        yield fr
+    ce.stdin.close(); ce.wait()
+    os.replace(tmp, path)
+
+silent = os.path.join(WORK, "video_noaudio_%d.mp4" % os.getpid())
+enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
+                        "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "14", "-profile:v", "high",
+                        "-pix_fmt", "yuv420p", silent], stdin=subprocess.PIPE)
+PAGE = None
+for seg in SEGS:
+    t0, t1 = seg[0], seg[1]
+    f0 = round(t0 * FPS)
+    print(f"{t0:6.2f}-{t1:6.2f} {seg[2]} [{seg[3]}-{seg[4]}]", flush=True)
+    for i, frame in enumerate(cached_frames(seg)):
+        draw_overlays(frame, (f0 + i) / FPS)
         enc.stdin.write(frame.convert("RGB").tobytes())
 enc.stdin.close()
 enc.wait()
@@ -644,7 +708,7 @@ for sg in SEGS:
         put(impact, sg[0] + 0.20, 0.45)        # panel lands
     if sg[2] == "TUT" and sg[5].get("panel_out"):
         put(impact, sg[5]["panel_out"] + 0.18, 0.40)   # big answer lands
-sfx = os.path.join(WORK, "sfx.wav")
+sfx = os.path.join(WORK, "sfx_%d.wav" % os.getpid())
 pcm = (np.clip(track, -1, 1) * 32767).astype(np.int16)
 import wave
 with wave.open(sfx, "wb") as wf:
@@ -659,4 +723,9 @@ subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", silent, "-i", os.path.join(
                 f"atrim=0:{TOTAL},afade=t=out:st={TOTAL - 0.25}:d=0.25[a]",
                 "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
                 "-movflags", "+faststart", "-shortest", OUT], check=True)
+for _f in (silent, sfx):
+    try:
+        os.remove(_f)
+    except OSError:
+        pass
 print("done", OUT, "pops:", len(POPS))
