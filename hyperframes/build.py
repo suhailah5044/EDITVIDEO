@@ -255,11 +255,44 @@ SOURCES = {  # slide id -> (source file, in-point seconds, crop on the rotated 2
 }
 
 
-def edl(intro=None):
-    clips = [{"id": sid, "src": SOURCES[sid][0], "in": SOURCES[sid][1], "crop": SOURCES[sid][2]} for sid, *_ in SLIDES]
+# ---- four versions of the body (everything after the intro). Every shot matches what the voice-over says:
+#  s2 "bukan setakat tambah... cara tolak"      -> menambah + menolak pages
+#  s3 "samakan penyebut, ikut langkah"          -> pointer on the menolak steps
+#  s4 "bila dah faham tekniknya"                -> menolak steps / Teknik Mudah FastMaths
+#  s5 "buku Kuasai Algebra ni berbaloi"         -> flipping through the book
+#  s6 "asas algebra, operasi, kembangan"        -> Kandungan page
+#  s7 "pemfaktoran dan persamaan linear"        -> Pemfaktoran / Persamaan Linear pages
+#  s8 "latihan dan video tutorial"              -> Set Latihan with the video-answer QR
+#  s9 "grab buku Kuasai Algebra"                -> the cover
+Z = "1620:2880:270:420"
+BODIES = {
+    "A": dict(SOURCES),
+    "B": {"s2": ("IMG_1593.MOV", 5.3, None), "s3": ("IMG_1592.MOV", 0.3, None), "s4": ("IMG_1593.MOV", 9.45, None),
+          "s5": ("IMG_1598.MOV", 2.0, None), "s6": ("IMG_1596.MOV", 0.3, None), "s7": ("IMG_1594.MOV", 3.4, None),
+          "s8": ("IMG_1597.MOV", 9.75, None), "s9": ("IMG_1597.MOV", 1.6, "1620:2880:270:420")},
+    "C": {"s2": ("IMG_1591.MOV", 0.0, Z), "s3": ("IMG_1593.MOV", 7.9, None), "s4": ("IMG_1593.MOV", 1.0, "1080:1920:900:1300"),
+          "s5": ("IMG_1594.MOV", 5.5, None), "s6": ("IMG_1596.MOV", 5.7, None), "s7": ("IMG_1597.MOV", 18.95, None),
+          "s8": ("IMG_1597.MOV", 16.9, None), "s9": ("IMG_1597.MOV", 1.6, "1620:2880:400:300")},
+    "D": {"s2": ("IMG_1591.MOV", 5.5, Z), "s3": ("IMG_1593.MOV", 7.9, None), "s4": ("IMG_1592.MOV", 0.3, None),
+          "s5": ("IMG_1598.MOV", 2.0, None), "s6": ("IMG_1596.MOV", 0.3, None), "s7": ("IMG_1597.MOV", 18.95, None),
+          "s8": ("IMG_1548.MOV", 0.3, None), "s9": ("IMG_1597.MOV", 1.6, None)},
+}
+BODY_ASSETS = {g: ({} if g == "A" else {sid: f"assets/body-{g}/{sid}.mp4" for sid in BODIES[g] if sid != "s1"}) for g in BODIES}
+
+
+def slot_range(i):
+    """start/end (s) of slide i on the timeline, including the cross-dissolve overlap."""
+    s = B[i] if i == 0 else B[i] - TR / 2
+    e = B[i + 1] + TR / 2 if i + 1 < len(SLIDES) else TOTAL
+    return s, e
+
+
+def edl(intro=None, body="A"):
+    src = dict(SOURCES); src.update(BODIES[body])
+    clips = [{"id": sid, "src": src[sid][0], "in": src[sid][1], "crop": src[sid][2]} for sid, *_ in SLIDES]
     if intro:
         clips[0] = {"id": "s1", "src": intro[0], "in": intro[1], "crop": intro[2]}
-    return {"total": TOTAL, "tr": TR, "boundaries": B, "clips": clips}
+    return {"total": TOTAL, "tr": TR, "boundaries": B, "body": body, "clips": clips}
 
 
 (ROOT / "index.html").write_text(page_html({}))
@@ -269,37 +302,60 @@ json.dump(edl(), open(ROOT / "edl.json", "w"), indent=1)
 # Every intro is a different shot that the body of the video does not use (or a 4K close-up),
 # and every hook title is different. IMG_1598 after ~6.9s shows another book -> never used.
 HOOKS = [
-    # (source, in, crop on the rotated 2160x3840 frame, kicker, title)
-    ("IMG_1593.MOV", 5.3, None, "RAMAI SILAP DI SINI", "Tolak pecahan algebra tapi jawapan salah? 😱"),           # wide, pointer
-    ("IMG_1593.MOV", 7.85, "1350:2400:620:150", "BOLEH JAWAB TAK?", "3c/5b − (c−6)/2d = ?"),                    # close-up: the question
-    ("IMG_1593.MOV", 10.35, "1080:1920:900:1300", "TEKNIK FASTMATHS", "Cara paling pantas tolak pecahan algebra ⚡"),  # close-up: cartoon + technique
-    ("IMG_1591.MOV", 9.75, "1080:1920:0:700", "TAMBAH VS TOLAK", "Tahu tambah, tapi tolak pecahan macam mana?"),   # close-up: menambah page
-    ("IMG_1594.MOV", 8.2, None, "MENOLAK ALGEBRA", "3 langkah je, terus dapat jawapan ✅"),                       # straight-on spread
-    ("IMG_1596.MOV", 3.2, None, "PARENTS, TENGOK NI", "Anak pening bab menolak algebra? 🤯"),                      # kandungan, pointer
-    ("IMG_1596.MOV", 5.9, "1080:1920:380:300", "SEMUA DALAM SATU BUKU", "Dari asas sampai persamaan linear 🧠"),     # close-up: kandungan list
-    ("IMG_1597.MOV", 0.0, None, "BUKU YANG RAMAI CARI", "Algebra jadi mudah dengan buku ni 📘"),                  # cover reveal
-    ("IMG_1597.MOV", 3.0, "1350:2400:300:300", "KUASAI ALGEBRA", "Satu buku, semua asas algebra 🔥"),               # close-up: cover title
-    ("IMG_1597.MOV", 5.0, "1080:1920:900:1300", "ADA VIDEO JALAN KERJA", "Anak tak faham? Tengok video tutorial 🎥"), # close-up: video badge
-    ("IMG_1597.MOV", 7.5, None, "ADA GROUP SUPPORT", "Tak faham? Boleh tanya terus 💬"),                          # back cover, QR groups
-    ("IMG_1597.MOV", 9.75, None, "CUBA JAWAB", "Boleh siapkan soalan ni dalam 1 minit? ⏱️"),                     # set latihan
-    ("IMG_1597.MOV", 14.0, None, "FAHAM, BUKAN HAFAL", "Kenapa hafal formula tapi masih salah? 🤔"),              # yellow contoh page
-    ("IMG_1598.MOV", 3.0, None, "MAK AYAH, SIMPAN VIDEO NI", "Bantu anak faham menolak algebra 📚"),              # flip-through
-    ("IMG_1597.MOV", 18.3, None, "CIKGU PUN GUNA", "Teknik yang jarang diajar kat sekolah"),                       # yellow technique page
-    ("IMG_1592.MOV", 0.5, "1080:1920:700:200", "ANAK STRUGGLE MATH?", "Tengok video ni sampai habis 👀"),          # close-up: page title
-    ("IMG_1599.MOV", 2.6, None, "FORM 1 HINGGA SPM", "Asas algebra yang confirm keluar exam 💯"),                 # persamaan linear page
-    ("IMG_1594.MOV", 3.4, None, "JANGAN SKIP", "Latihan + jawapan video, siap semua 📝"),                          # set latihan, flipping
-    ("IMG_1593.MOV", 10.35, "1080:1920:300:1920", "TIPS MATH", "Jangan terus tolak! Buat ni dulu ⚠️"),               # close-up: menambah steps + backpack cartoon
-    ("IMG_1592.MOV", 2.4, "1080:1920:500:900", "LANGKAH PERTAMA", "Samakan penyebut dulu, baru tolak ✍️"),           # close-up: steps
+    # (body version, source, in, crop on the rotated 2160x3840 frame, kicker, title)
+    # --- videos 1-5: body A
+    ("A", "IMG_1593.MOV", 5.3, None, "RAMAI SILAP DI SINI", "Tolak pecahan algebra tapi jawapan salah? 😱"),            # wide, pointer
+    ("A", "IMG_1593.MOV", 7.85, "1350:2400:620:150", "BOLEH JAWAB TAK?", "3c/5b − (c−6)/2d = ?"),                     # close-up: the question
+    ("A", "IMG_1593.MOV", 10.3, "1080:1920:900:1300", "TEKNIK FASTMATHS", "Cara paling pantas tolak pecahan algebra ⚡"),  # close-up: cartoon + technique
+    ("A", "IMG_1593.MOV", 10.3, "1080:1920:300:1920", "TIPS MATH", "Jangan terus tolak! Buat ni dulu ⚠️"),           # close-up: backpack cartoon + darab silang
+    ("A", "IMG_1598.MOV", 3.0, None, "MAK AYAH, SIMPAN VIDEO NI", "Bantu anak faham menolak algebra 📚"),               # flip-through
+    # --- videos 6-10: body B
+    ("B", "IMG_1596.MOV", 3.2, None, "PARENTS, TENGOK NI", "Anak pening bab menolak algebra? 🤯"),                       # kandungan, pointer
+    ("B", "IMG_1596.MOV", 5.9, "1080:1920:380:300", "SEMUA DALAM SATU BUKU", "Dari asas sampai persamaan linear 🧠"),      # close-up: kandungan list
+    ("B", "IMG_1597.MOV", 14.0, None, "FAHAM, BUKAN HAFAL", "Kenapa hafal formula tapi masih salah? 🤔"),               # yellow contoh page
+    ("B", "IMG_1597.MOV", 18.3, None, "CIKGU PUN GUNA", "Teknik yang jarang diajar kat sekolah"),                        # yellow technique page
+    ("B", "IMG_1597.MOV", 3.0, "1350:2400:300:300", "KUASAI ALGEBRA", "Satu buku, semua asas algebra 🔥"),                # close-up: cover title
+    # --- videos 11-15: body C
+    ("C", "IMG_1597.MOV", 0.0, None, "BUKU YANG RAMAI CARI", "Algebra jadi mudah dengan buku ni 📘"),                   # cover reveal
+    ("C", "IMG_1597.MOV", 7.5, None, "ADA GROUP SUPPORT", "Tak faham? Boleh tanya terus 💬"),                           # back cover, QR groups
+    ("C", "IMG_1597.MOV", 9.75, None, "CUBA JAWAB", "Boleh siapkan soalan ni dalam 1 minit? ⏱️"),                      # set latihan
+    ("C", "IMG_1592.MOV", 0.5, "1080:1920:700:200", "ANAK STRUGGLE MATH?", "Tengok video ni sampai habis 👀"),           # close-up: page title
+    ("C", "IMG_1592.MOV", 2.4, "1080:1920:500:900", "LANGKAH PERTAMA", "Samakan penyebut dulu, baru tolak ✍️"),          # close-up: steps
+    # --- videos 16-20: body D
+    ("D", "IMG_1591.MOV", 9.75, "1080:1920:0:700", "TAMBAH VS TOLAK", "Tahu tambah, tapi tolak pecahan macam mana?"),    # close-up: menambah page
+    ("D", "IMG_1594.MOV", 8.2, None, "MENOLAK ALGEBRA", "3 langkah je, terus dapat jawapan ✅"),                        # straight-on spread
+    ("D", "IMG_1597.MOV", 5.0, "1080:1920:900:1300", "ADA VIDEO JALAN KERJA", "Anak tak faham? Tengok video tutorial 🎥"),  # close-up: video badge
+    ("D", "IMG_1599.MOV", 2.6, None, "FORM 1 HINGGA SPM", "Asas algebra yang confirm keluar exam 💯"),                  # persamaan linear page
+    ("D", "IMG_1594.MOV", 3.4, None, "JANGAN SKIP", "Latihan + jawapan video, siap semua 📝"),                           # set latihan, flipping
 ]
 assert len(HOOKS) == 20
-assert len({h[4] for h in HOOKS}) == 20 and len({h[3] for h in HOOKS}) == 20, "titles/kickers must all differ"
-assert len({(h[0], h[1], h[2]) for h in HOOKS}) == 20, "intros must all differ"
-for n, (src, t_in, crop, kicker, title) in enumerate(HOOKS, 1):
+assert len({h[5] for h in HOOKS}) == 20 and len({h[4] for h in HOOKS}) == 20, "titles/kickers must all differ"
+assert len({h[1:4] for h in HOOKS}) == 20, "intros must all differ"
+assert [h[0] for h in HOOKS] == ["A"] * 5 + ["B"] * 5 + ["C"] * 5 + ["D"] * 5
+
+
+def overlaps(a, b):
+    return a[0] == b[0] and a[1] < b[2] and b[1] < a[2]
+
+
+# no intro may re-use footage that its own body already shows (the cover CTA excepted: intro shows
+# the book, the ending asks to buy it)
+for n, (g, src, t_in, crop, kicker, title) in enumerate(HOOKS, 1):
+    intro = (src, t_in, t_in + slot_range(0)[1])
+    for k, (sid, *_) in enumerate(SLIDES[1:], 1):
+        bs = BODIES[g].get(sid, SOURCES[sid])
+        st, en = slot_range(k)
+        if sid != "s9":
+            assert not overlaps(intro, (bs[0], bs[1], bs[1] + en - st)), f"hook {n}: intro repeats body shot {sid}"
+
+for n, (g, src, t_in, crop, kicker, title) in enumerate(HOOKS, 1):
     d = ROOT / "hooks" / f"hook-{n:02d}"
     d.mkdir(parents=True, exist_ok=True)
-    (d / "index.html").write_text(page_html({"s1": f"assets/hooks/intro-{n:02d}.mp4"}, prefix="../../", hook=(kicker, title)))
-    e = edl((src, t_in, crop)); e["hook"] = {"kicker": kicker, "title": title}
+    assets = dict(BODY_ASSETS[g]); assets["s1"] = f"assets/hooks/intro-{n:02d}.mp4"
+    (d / "index.html").write_text(page_html(assets, prefix="../../", hook=(kicker, title)))
+    e = edl((src, t_in, crop), g); e["hook"] = {"kicker": kicker, "title": title}
     json.dump(e, open(d / "edl.json", "w"), indent=1, ensure_ascii=False)
-json.dump([{"n": n, "src": h[0], "in": h[1], "crop": h[2], "kicker": h[3], "title": h[4]} for n, h in enumerate(HOOKS, 1)],
+json.dump([{"n": n, "body": h[0], "src": h[1], "in": h[2], "crop": h[3], "kicker": h[4], "title": h[5]} for n, h in enumerate(HOOKS, 1)],
           open(ROOT / "hooks" / "hooks.json", "w"), indent=1, ensure_ascii=False)
+json.dump({g: edl(None, g) for g in BODIES}, open(ROOT / "hooks" / "bodies.json", "w"), indent=1)
 print("captions:", len(caps), "slides:", len(SLIDES), "hooks:", len(HOOKS))

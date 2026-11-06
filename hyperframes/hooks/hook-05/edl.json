@@ -13,11 +13,12 @@
   22.36,
   27.6
  ],
+ "body": "A",
  "clips": [
   {
    "id": "s1",
-   "src": "IMG_1594.MOV",
-   "in": 8.2,
+   "src": "IMG_1598.MOV",
+   "in": 3.0,
    "crop": null
   },
   {
@@ -70,7 +71,7 @@
   }
  ],
  "hook": {
-  "kicker": "MENOLAK ALGEBRA",
-  "title": "3 langkah je, terus dapat jawapan ✅"
+  "kicker": "MAK AYAH, SIMPAN VIDEO NI",
+  "title": "Bantu anak faham menolak algebra 📚"
  }
 }

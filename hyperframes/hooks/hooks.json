@@ -1,6 +1,7 @@
 [
  {
   "n": 1,
+  "body": "A",
   "src": "IMG_1593.MOV",
   "in": 5.3,
   "crop": null,
@@ -9,6 +10,7 @@
  },
  {
   "n": 2,
+  "body": "A",
   "src": "IMG_1593.MOV",
   "in": 7.85,
   "crop": "1350:2400:620:150",
@@ -17,30 +19,34 @@
  },
  {
   "n": 3,
+  "body": "A",
   "src": "IMG_1593.MOV",
-  "in": 10.35,
+  "in": 10.3,
   "crop": "1080:1920:900:1300",
   "kicker": "TEKNIK FASTMATHS",
   "title": "Cara paling pantas tolak pecahan algebra ⚡"
  },
  {
   "n": 4,
-  "src": "IMG_1591.MOV",
-  "in": 9.75,
-  "crop": "1080:1920:0:700",
-  "kicker": "TAMBAH VS TOLAK",
-  "title": "Tahu tambah, tapi tolak pecahan macam mana?"
+  "body": "A",
+  "src": "IMG_1593.MOV",
+  "in": 10.3,
+  "crop": "1080:1920:300:1920",
+  "kicker": "TIPS MATH",
+  "title": "Jangan terus tolak! Buat ni dulu ⚠️"
  },
  {
   "n": 5,
-  "src": "IMG_1594.MOV",
-  "in": 8.2,
+  "body": "A",
+  "src": "IMG_1598.MOV",
+  "in": 3.0,
   "crop": null,
-  "kicker": "MENOLAK ALGEBRA",
-  "title": "3 langkah je, terus dapat jawapan ✅"
+  "kicker": "MAK AYAH, SIMPAN VIDEO NI",
+  "title": "Bantu anak faham menolak algebra 📚"
  },
  {
   "n": 6,
+  "body": "B",
   "src": "IMG_1596.MOV",
   "in": 3.2,
   "crop": null,
@@ -49,6 +55,7 @@
  },
  {
   "n": 7,
+  "body": "B",
   "src": "IMG_1596.MOV",
   "in": 5.9,
   "crop": "1080:1920:380:300",
@@ -57,46 +64,7 @@
  },
  {
   "n": 8,
-  "src": "IMG_1597.MOV",
-  "in": 0.0,
-  "crop": null,
-  "kicker": "BUKU YANG RAMAI CARI",
-  "title": "Algebra jadi mudah dengan buku ni 📘"
- },
- {
-  "n": 9,
-  "src": "IMG_1597.MOV",
-  "in": 3.0,
-  "crop": "1350:2400:300:300",
-  "kicker": "KUASAI ALGEBRA",
-  "title": "Satu buku, semua asas algebra 🔥"
- },
- {
-  "n": 10,
-  "src": "IMG_1597.MOV",
-  "in": 5.0,
-  "crop": "1080:1920:900:1300",
-  "kicker": "ADA VIDEO JALAN KERJA",
-  "title": "Anak tak faham? Tengok video tutorial 🎥"
- },
- {
-  "n": 11,
-  "src": "IMG_1597.MOV",
-  "in": 7.5,
-  "crop": null,
-  "kicker": "ADA GROUP SUPPORT",
-  "title": "Tak faham? Boleh tanya terus 💬"
- },
- {
-  "n": 12,
-  "src": "IMG_1597.MOV",
-  "in": 9.75,
-  "crop": null,
-  "kicker": "CUBA JAWAB",
-  "title": "Boleh siapkan soalan ni dalam 1 minit? ⏱️"
- },
- {
-  "n": 13,
+  "body": "B",
   "src": "IMG_1597.MOV",
   "in": 14.0,
   "crop": null,
@@ -104,15 +72,8 @@
   "title": "Kenapa hafal formula tapi masih salah? 🤔"
  },
  {
-  "n": 14,
-  "src": "IMG_1598.MOV",
-  "in": 3.0,
-  "crop": null,
-  "kicker": "MAK AYAH, SIMPAN VIDEO NI",
-  "title": "Bantu anak faham menolak algebra 📚"
- },
- {
-  "n": 15,
+  "n": 9,
+  "body": "B",
   "src": "IMG_1597.MOV",
   "in": 18.3,
   "crop": null,
@@ -120,7 +81,44 @@
   "title": "Teknik yang jarang diajar kat sekolah"
  },
  {
-  "n": 16,
+  "n": 10,
+  "body": "B",
+  "src": "IMG_1597.MOV",
+  "in": 3.0,
+  "crop": "1350:2400:300:300",
+  "kicker": "KUASAI ALGEBRA",
+  "title": "Satu buku, semua asas algebra 🔥"
+ },
+ {
+  "n": 11,
+  "body": "C",
+  "src": "IMG_1597.MOV",
+  "in": 0.0,
+  "crop": null,
+  "kicker": "BUKU YANG RAMAI CARI",
+  "title": "Algebra jadi mudah dengan buku ni 📘"
+ },
+ {
+  "n": 12,
+  "body": "C",
+  "src": "IMG_1597.MOV",
+  "in": 7.5,
+  "crop": null,
+  "kicker": "ADA GROUP SUPPORT",
+  "title": "Tak faham? Boleh tanya terus 💬"
+ },
+ {
+  "n": 13,
+  "body": "C",
+  "src": "IMG_1597.MOV",
+  "in": 9.75,
+  "crop": null,
+  "kicker": "CUBA JAWAB",
+  "title": "Boleh siapkan soalan ni dalam 1 minit? ⏱️"
+ },
+ {
+  "n": 14,
+  "body": "C",
   "src": "IMG_1592.MOV",
   "in": 0.5,
   "crop": "1080:1920:700:200",
@@ -128,7 +126,44 @@
   "title": "Tengok video ni sampai habis 👀"
  },
  {
+  "n": 15,
+  "body": "C",
+  "src": "IMG_1592.MOV",
+  "in": 2.4,
+  "crop": "1080:1920:500:900",
+  "kicker": "LANGKAH PERTAMA",
+  "title": "Samakan penyebut dulu, baru tolak ✍️"
+ },
+ {
+  "n": 16,
+  "body": "D",
+  "src": "IMG_1591.MOV",
+  "in": 9.75,
+  "crop": "1080:1920:0:700",
+  "kicker": "TAMBAH VS TOLAK",
+  "title": "Tahu tambah, tapi tolak pecahan macam mana?"
+ },
+ {
   "n": 17,
+  "body": "D",
+  "src": "IMG_1594.MOV",
+  "in": 8.2,
+  "crop": null,
+  "kicker": "MENOLAK ALGEBRA",
+  "title": "3 langkah je, terus dapat jawapan ✅"
+ },
+ {
+  "n": 18,
+  "body": "D",
+  "src": "IMG_1597.MOV",
+  "in": 5.0,
+  "crop": "1080:1920:900:1300",
+  "kicker": "ADA VIDEO JALAN KERJA",
+  "title": "Anak tak faham? Tengok video tutorial 🎥"
+ },
+ {
+  "n": 19,
+  "body": "D",
   "src": "IMG_1599.MOV",
   "in": 2.6,
   "crop": null,
@@ -136,27 +171,12 @@
   "title": "Asas algebra yang confirm keluar exam 💯"
  },
  {
-  "n": 18,
+  "n": 20,
+  "body": "D",
   "src": "IMG_1594.MOV",
   "in": 3.4,
   "crop": null,
   "kicker": "JANGAN SKIP",
   "title": "Latihan + jawapan video, siap semua 📝"
- },
- {
-  "n": 19,
-  "src": "IMG_1593.MOV",
-  "in": 10.35,
-  "crop": "1080:1920:300:1920",
-  "kicker": "TIPS MATH",
-  "title": "Jangan terus tolak! Buat ni dulu ⚠️"
- },
- {
-  "n": 20,
-  "src": "IMG_1592.MOV",
-  "in": 2.4,
-  "crop": "1080:1920:500:900",
-  "kicker": "LANGKAH PERTAMA",
-  "title": "Samakan penyebut dulu, baru tolak ✍️"
  }
 ]

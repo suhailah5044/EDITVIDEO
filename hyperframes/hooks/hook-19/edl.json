@@ -13,12 +13,13 @@
   22.36,
   27.6
  ],
+ "body": "D",
  "clips": [
   {
    "id": "s1",
-   "src": "IMG_1593.MOV",
-   "in": 10.35,
-   "crop": "1080:1920:300:1920"
+   "src": "IMG_1599.MOV",
+   "in": 2.6,
+   "crop": null
   },
   {
    "id": "s2",
@@ -29,7 +30,7 @@
   {
    "id": "s3",
    "src": "IMG_1593.MOV",
-   "in": 0.5,
+   "in": 7.9,
    "crop": null
   },
   {
@@ -40,20 +41,20 @@
   },
   {
    "id": "s5",
-   "src": "IMG_1594.MOV",
-   "in": 0.0,
+   "src": "IMG_1598.MOV",
+   "in": 2.0,
    "crop": null
   },
   {
    "id": "s6",
    "src": "IMG_1596.MOV",
-   "in": 0.5,
+   "in": 0.3,
    "crop": null
   },
   {
    "id": "s7",
-   "src": "IMG_1599.MOV",
-   "in": 0.3,
+   "src": "IMG_1597.MOV",
+   "in": 18.95,
    "crop": null
   },
   {
@@ -70,7 +71,7 @@
   }
  ],
  "hook": {
-  "kicker": "TIPS MATH",
-  "title": "Jangan terus tolak! Buat ni dulu ⚠️"
+  "kicker": "FORM 1 HINGGA SPM",
+  "title": "Asas algebra yang confirm keluar exam 💯"
  }
 }

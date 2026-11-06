@@ -1,7 +1,7 @@
 // Render the 20 hook variants (hooks/hook-NN) at full quality.
 //
-//  body   : everything after the intro (t >= 2.25s) is identical in all variants, so it is rendered
-//           once from the ORIGINAL files with its captions, as a near-lossless intermediate.
+//  body   : everything after the intro (t >= 2.25s). There are 4 body versions (A-D, 5 variants each);
+//           each is rendered once from the ORIGINAL files with its captions, as a near-lossless intermediate.
 //  variant: intro clip from the ORIGINAL file + its hook title (HyperFrames overlay), cross-dissolved
 //           into the body, voice-over muxed, one final encode.
 //
@@ -48,11 +48,17 @@ async function overlay(html, t0, t1, hideCss, file) {
   await browser.close();
 }
 
-async function renderBody(edl, hookHtml, bodyFile) {
-  const B = edl.boundaries, H = edl.tr / 2, T0 = B[1] - H;
-  const ov = path.join(WORK, 'body-overlay.mov');
+// captions of the body are the same in every variant (same voice-over) -> rendered once
+async function bodyOverlay(edl, hookHtml, file) {
+  if (fs.existsSync(file)) return;
+  const T0 = edl.boundaries[1] - edl.tr / 2;
   console.log('body: captions overlay');
-  await overlay(hookHtml, T0, edl.total, '#hook{display:none!important}', ov);
+  await overlay(hookHtml, T0, edl.total, '#hook{display:none!important}', file + '.part.mov');
+  fs.renameSync(file + '.part.mov', file);
+}
+
+async function renderBody(edl, ov, bodyFile) {
+  const B = edl.boundaries, H = edl.tr / 2, T0 = B[1] - H;
   const args = ['-v', 'error', '-y'], fc = [];
   const clips = edl.clips.slice(1);
   clips.forEach((c, j) => {
@@ -70,24 +76,26 @@ async function renderBody(edl, hookHtml, bodyFile) {
   fc.push(`[${clips.length}:v]scale=out_color_matrix=bt709:out_range=tv,format=yuva420p[ov]`);
   fc.push(`[${lastL}][ov]overlay=0:0:format=yuv420,format=yuv420p[vout]`);
   args.push('-filter_complex', fc.join(';'), '-map', '[vout]', '-t', (edl.total - T0).toFixed(3),
-    '-c:v', 'libx264', '-preset', 'medium', '-crf', '6', '-pix_fmt', 'yuv420p', ...COLOR, bodyFile);
-  console.log('body: compositing from original files');
+    '-c:v', 'libx264', '-preset', 'medium', '-crf', '6', '-pix_fmt', 'yuv420p', ...COLOR, bodyFile + '.part.mp4');
+  console.log(`body ${edl.body}: compositing from original files`);
   await run(args);
-  fs.unlinkSync(ov);
+  fs.renameSync(bodyFile + '.part.mp4', bodyFile);
 }
 
-async function renderVariant(n, bodyFile) {
+async function renderVariant(n, ov) {
   const id = `hook-${String(n).padStart(2, '0')}`;
   const dir = path.join(DIR, 'hooks', id);
   const edl = JSON.parse(fs.readFileSync(path.join(dir, 'edl.json'), 'utf8'));
+  const bodyFile = path.join(WORK, `body-${edl.body}.mp4`);
+  if (!fs.existsSync(bodyFile)) await renderBody(edl, ov, bodyFile);
   const B = edl.boundaries, H = edl.tr / 2, introEnd = B[1] + H, T0 = B[1] - H;
-  const ov = path.join(WORK, `${id}-overlay.mov`);
-  await overlay(path.join(dir, 'index.html'), 0, introEnd, '#box{display:none!important}', ov);
+  const hov = path.join(WORK, `${id}-overlay.mov`);
+  await overlay(path.join(dir, 'index.html'), 0, introEnd, '#box{display:none!important}', hov);
   const c = edl.clips[0];
   const out = path.join(OUTDIR, `menolak-algebra-${id}.mp4`);
   const args = ['-v', 'error', '-y',
     '-ss', String(c.in), '-t', introEnd.toFixed(3), '-i', path.join(SRC, c.src),
-    '-i', ov, '-i', bodyFile, '-i', path.join(DIR, 'assets/vo.m4a'),
+    '-i', hov, '-i', bodyFile, '-i', path.join(DIR, 'assets/vo.m4a'),
     '-filter_complex', [
       `[0:v]${clipChain(c)}[iv]`,
       `[1:v]scale=out_color_matrix=bt709:out_range=tv,format=yuva420p[ov]`,
@@ -99,17 +107,15 @@ async function renderVariant(n, bodyFile) {
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-profile:v', 'high', '-pix_fmt', 'yuv420p', ...COLOR,
     '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out];
   await run(args);
-  fs.unlinkSync(ov);
-  console.log(`done ${id} -> ${out}`);
+  fs.unlinkSync(hov);
+  console.log(`done ${id} (body ${edl.body}) -> ${out}`);
 }
 
 (async () => {
   fs.mkdirSync(WORK, { recursive: true });
-  const bodyFile = path.join(WORK, 'body.mp4');
-  if (!fs.existsSync(bodyFile)) {
-    const edl = JSON.parse(fs.readFileSync(path.join(DIR, 'hooks', 'hook-01', 'edl.json'), 'utf8'));
-    await renderBody(edl, path.join(DIR, 'hooks', 'hook-01', 'index.html'), bodyFile);
-  }
-  for (let n = first; n <= last; n++) await renderVariant(n, bodyFile);
+  const ov = path.join(WORK, 'body-overlay.mov');
+  const e1 = JSON.parse(fs.readFileSync(path.join(DIR, 'hooks', 'hook-01', 'edl.json'), 'utf8'));
+  await bodyOverlay(e1, path.join(DIR, 'hooks', 'hook-01', 'index.html'), ov);
+  for (let n = first; n <= last; n++) await renderVariant(n, ov);
   console.log('all done');
 })().catch(e => { console.error(e); process.exit(1); });
