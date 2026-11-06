@@ -324,7 +324,7 @@ HOOKS = [
     ("C", "IMG_1592.MOV", 2.4, "1080:1920:500:900", "LANGKAH PERTAMA", "Samakan penyebut dulu, baru tolak ✍️"),          # close-up: steps
     # --- videos 16-20: body D
     ("D", "IMG_1591.MOV", 9.75, "1080:1920:0:700", "TAMBAH VS TOLAK", "Tahu tambah, tapi tolak pecahan macam mana?"),    # close-up: menambah page
-    ("D", "IMG_1594.MOV", 8.2, None, "MENOLAK ALGEBRA", "3 langkah je, terus dapat jawapan ✅"),                        # straight-on spread
+    ("D", "IMG_1594.MOV", 8.2, None, "BUKAN TEORI JE", "Setiap bab ada latihan untuk cuba sendiri ✍️"),          # set latihan -> KDK -> spread
     ("D", "IMG_1597.MOV", 5.0, "1080:1920:900:1300", "ADA VIDEO JALAN KERJA", "Anak tak faham? Tengok video tutorial 🎥"),  # close-up: video badge
     ("D", "IMG_1599.MOV", 2.6, None, "FORM 1 HINGGA SPM", "Asas algebra yang confirm keluar exam 💯"),                  # persamaan linear page
     ("D", "IMG_1594.MOV", 3.4, None, "JANGAN SKIP", "Latihan + jawapan video, siap semua 📝"),                           # set latihan, flipping
